@@ -68,7 +68,7 @@ export function LoginForm({
                 </div>
                 <Button
                   type="submit"
-                  className="mt-2 h-10 w-full rounded-lg bg-black text-base font-medium text-white transition-all duration-200 hover:bg-neutral-700 hover:shadow-md"
+                  className="mt-2 h-10 w-full rounded-lg bg-primary text-base font-medium text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-md"
                 >
                   Login
                 </Button>
@@ -80,14 +80,14 @@ export function LoginForm({
               </div>
               <Button
                 variant="outline"
-                className="group h-10 w-full gap-2.5 rounded-lg border-2 border-black/20 text-base font-medium text-foreground transition-all duration-300 hover:border-black hover:bg-black hover:text-primary hover:shadow-lg"
+                className="group h-10 w-full gap-2.5 rounded-lg border-2 border-border text-base font-medium text-[hsl(var(--secondary-accent))] transition-all duration-300 hover:border-[hsl(var(--secondary-accent))] hover:bg-[hsl(var(--secondary-accent))] hover:text-[hsl(var(--secondary-accent-foreground))] hover:shadow-lg"
                 type="button"
                 onClick={handleGitHubLogin}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
-                  className="h-[18px] w-[18px] transition-all duration-300 group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]"
+                  className="h-[18px] w-[18px] text-[hsl(var(--secondary-accent))] transition-all duration-300 group-hover:text-[hsl(var(--secondary-accent-foreground))]"
                 >
                   <path
                     fill="currentColor"
