@@ -28,7 +28,7 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
-import GlareHover from "@/components/GlareHover"
+// import GlareHover from "@/components/GlareHover" // TODO: missing component
 
 const data = {
   user: {
@@ -105,9 +105,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem className="list-none overflow-visible">
               <Link href="/chat" className="block w-full">
-                <div className="flex items-center gap-2 dark:bg-gradient-to-br dark:from-primary/90 dark:via-primary dark:to-primary/80 bg-[#1c1c1c] hover:bg-[#2a2a2a] rounded-md px-2 h-8 transition-all duration-300 dark:shadow-[0_0_8px_rgba(34,197,94,0.15)] shadow-[0_0_8px_rgba(28,28,28,0.3)] hover:dark:shadow-[0_0_12px_rgba(34,197,94,0.25)] hover:shadow-[0_0_12px_rgba(42,42,42,0.4)]">
-                  <Plus className="h-4 w-4 text-white flex-shrink-0" />
-                  <span className="text-sm text-white font-medium">New Chat</span>
+                <div className="flex items-center gap-2 bg-[hsl(var(--secondary-accent))] hover:bg-[hsl(var(--secondary-accent))]/90 rounded-md px-2 h-8 transition-all duration-300 shadow-sm hover:shadow-md">
+                  <Plus className="h-4 w-4 text-[hsl(var(--secondary-accent-foreground))] flex-shrink-0" />
+                  <span className="text-sm text-[hsl(var(--secondary-accent-foreground))] font-medium">New Chat</span>
                 </div>
               </Link>
             </SidebarMenuItem>
