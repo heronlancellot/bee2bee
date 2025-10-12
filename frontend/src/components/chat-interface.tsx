@@ -1,12 +1,19 @@
 "use client"
 
 import * as React from "react"
-import { Send, Loader2, Code2, FileText, ChevronDown, MessageSquare, Bot, Target, Search, Users, Sparkles, Zap, Paperclip, Mic, Command, ChevronRight } from "lucide-react"
+import { Send, Loader2, Code2, FileText, ChevronDown, MessageSquare, Bot, Target, Search, Users, Sparkles, Zap, Paperclip, Mic, Command, ChevronRight, User, Copy, RotateCw, ThumbsUp, ThumbsDown } from "lucide-react"
+import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai/conversation"
+import { Message, MessageContent, MessageAvatar } from "@/components/ai/message"
+import { Response } from "@/components/ai/response"
+import { ShimmeringText } from "@/components/ai/shimmering-text"
+import { Loader } from "@/components/ai/loader"
+import { Actions, Action } from "@/components/ai/actions"
 import { ChatMessage, CodeSource } from "@/types"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   Card,
   CardContent,
@@ -14,6 +21,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -68,23 +80,43 @@ export function ChatInterface({
   const [currentConversation, setCurrentConversation] = React.useState(mockConversations[0])
   const [showCommands, setShowCommands] = React.useState(false)
   const [filteredCommands, setFilteredCommands] = React.useState(availableCommands)
-  const messagesEndRef = React.useRef<HTMLDivElement>(null)
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
   const suggestionsRef = React.useRef<HTMLDivElement>(null)
+  const [streamingText, setStreamingText] = React.useState("")
+  const [isStreaming, setIsStreaming] = React.useState(false)
+
+  // Check if chat is empty (no messages)
+  const isEmpty = messages.length === 0
+
+  // Simulate streaming effect for the last AI message
+  React.useEffect(() => {
+    const lastMessage = messages[messages.length - 1]
+    if (lastMessage && lastMessage.role === 'assistant' && !isStreaming) {
+      setIsStreaming(true)
+      setStreamingText("")
+
+      const fullText = lastMessage.content
+      let currentIndex = 0
+
+      const interval = setInterval(() => {
+        if (currentIndex < fullText.length) {
+          setStreamingText(fullText.substring(0, currentIndex + 1))
+          currentIndex++
+        } else {
+          setIsStreaming(false)
+          clearInterval(interval)
+        }
+      }, 20) // Velocidade do streaming (20ms por caractere)
+
+      return () => clearInterval(interval)
+    }
+  }, [messages])
 
   const scrollSuggestions = () => {
     if (suggestionsRef.current) {
       suggestionsRef.current.scrollBy({ left: 200, behavior: 'smooth' })
     }
   }
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
-
-  React.useEffect(() => {
-    scrollToBottom()
-  }, [messages])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value
@@ -134,7 +166,7 @@ export function ChatInterface({
   }
 
   return (
-    <div className="flex h-full flex-col relative">
+    <div className="flex flex-1 flex-col relative overflow-hidden min-h-0">
       {/* Floating Conversation Selector */}
       <div className="absolute top-3 left-4 z-10">
         <DropdownMenu>
@@ -170,314 +202,499 @@ export function ChatInterface({
         </DropdownMenu>
       </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 pt-12">
-        {messages.length === 0 ? (
-          <EmptyState selectedReposCount={selectedReposCount} />
-        ) : (
-          <div className="space-y-6">
-            {messages.map((message) => (
-              <MessageBubble key={message.id} message={message} />
-            ))}
-            {isLoading && <LoadingMessage />}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
-      </div>
-
-      {/* Input Area */}
-      <div className="border-t bg-background p-4 relative">
-        {/* Smart Suggestions - Floating Above Input */}
-        {!input && selectedReposCount > 0 && (
-          <div className="absolute bottom-full left-0 right-0 mb-3 px-4 z-10 overflow-visible">
-            <div className="flex items-center gap-2 overflow-visible">
-              <div
-                ref={suggestionsRef}
-                className="flex gap-2 overflow-x-auto scrollbar-none flex-1 overflow-y-visible py-1"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-              >
-                {smartSuggestions.map((suggestion, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => {
-                      setInput(suggestion)
-                      textareaRef.current?.focus()
-                    }}
-                    className="shrink-0 px-3 py-1.5 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 text-xs font-medium text-muted-foreground transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 hover:text-primary hover:shadow-[0_0_4px_hsl(var(--primary)/0.15)]"
-                    style={{
-                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                    }}
-                  >
-                    "{suggestion}"
-                  </button>
-                ))}
+      {/* Messages Area or Empty State with Centered Chat */}
+      {isEmpty ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-6 transition-all duration-500 ease-in-out">
+          <div className="max-w-2xl w-full transition-all duration-500 ease-in-out">
+            {/* Empty State Content */}
+            <div className="text-center space-y-8 mb-8 transition-all duration-500 ease-in-out animate-in fade-in slide-in-from-bottom-4">
+              {/* Greeting */}
+              <div className="space-y-3">
+                <h1 className="text-3xl font-semibold text-foreground">
+                  {getGreeting()}, Judha
+                </h1>
+                <h2 className="text-xl text-foreground">
+                  How Can I <span className="text-primary">Assist You Today?</span>
+                </h2>
               </div>
-              <button
-                type="button"
-                onClick={scrollSuggestions}
-                className="shrink-0 h-7 w-7 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 flex items-center justify-center transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 group"
-                style={{
-                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                }}
-              >
-                <ChevronRight className="h-3 w-3 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.3)]" />
-              </button>
+
+              {/* Helper Text */}
+              {selectedReposCount === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Select repositories from the right sidebar to start chatting with AI
+                </p>
+              )}
+            </div>
+
+            {/* Floating Chat Input */}
+            <div className="relative">
+              {/* Smart Suggestions - Above Input */}
+              {!input && selectedReposCount > 0 && (
+                <div className="mb-3 overflow-visible">
+                  <div className="flex items-center gap-2 overflow-visible">
+                    <div
+                      ref={suggestionsRef}
+                      className="flex gap-2 overflow-x-auto scrollbar-none flex-1 overflow-y-visible py-1"
+                      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    >
+                      {smartSuggestions.map((suggestion, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setInput(suggestion)
+                            textareaRef.current?.focus()
+                          }}
+                          className="shrink-0 px-3 py-1.5 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 text-xs font-medium text-muted-foreground transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 hover:text-primary hover:shadow-[0_0_4px_hsl(var(--primary)/0.15)]"
+                          style={{
+                            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                          }}
+                        >
+                          "{suggestion}"
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={scrollSuggestions}
+                      className="shrink-0 h-7 w-7 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 flex items-center justify-center transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 group"
+                      style={{
+                        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                      }}
+                    >
+                      <ChevronRight className="h-3 w-3 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.3)]" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit}>
+                <div className="relative">
+                  {/* Command Palette */}
+                  {showCommands && filteredCommands.length > 0 && (
+                    <div className="absolute bottom-full left-0 right-0 mb-2 rounded-lg border bg-popover shadow-lg animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2">
+                      <div className="p-2 max-h-[280px] overflow-y-auto">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground/70 px-2 py-1 mb-1">
+                          Available Commands
+                        </div>
+                        {filteredCommands.map((cmd) => {
+                          const Icon = cmd.icon
+                          return (
+                            <button
+                              key={cmd.command}
+                              type="button"
+                              onClick={() => selectCommand(cmd.command)}
+                              className="w-full flex items-start gap-3 px-2 py-2 rounded-md hover:bg-muted/50 transition-colors duration-200 text-left group"
+                            >
+                              <div className="mt-0.5 shrink-0">
+                                <Icon className="h-4 w-4 text-primary transition-all duration-300 group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground">{cmd.command}</p>
+                                <p className="text-xs text-muted-foreground line-clamp-1">{cmd.description}</p>
+                              </div>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="relative">
+                    <Textarea
+                      ref={textareaRef}
+                      value={input}
+                      onChange={handleInputChange}
+                      onKeyDown={handleKeyDown}
+                      placeholder={
+                        selectedReposCount === 0
+                          ? "Select repositories to start chatting..."
+                          : "Ask anything about your code..."
+                      }
+                      disabled={isLoading || selectedReposCount === 0}
+                      className="min-h-[100px] resize-none pr-2 pb-10"
+                    />
+
+                    {/* Action Badges - Inside Textarea */}
+                    <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
+                      <div className="flex items-center gap-1.5 pointer-events-auto">
+                        {/* Attach Files/Repos */}
+                        <button
+                          type="button"
+                          disabled={isLoading || selectedReposCount === 0}
+                          className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                          title="Attach file or repository"
+                        >
+                          <Paperclip className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
+                          <span className="text-[11px] font-medium">Attach</span>
+                        </button>
+
+                        {/* Quick Commands */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              disabled={isLoading || selectedReposCount === 0}
+                              className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                              title="Quick commands"
+                            >
+                              <Command className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
+                              <span className="text-[11px] font-medium">Commands</span>
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent side="top" align="start" className="w-64">
+                            <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/70">Quick Commands</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {availableCommands.slice(0, 4).map((cmd) => {
+                              const Icon = cmd.icon
+                              return (
+                                <DropdownMenuItem
+                                  key={cmd.command}
+                                  onClick={() => {
+                                    setInput(cmd.command + " ")
+                                    textareaRef.current?.focus()
+                                  }}
+                                  className="flex items-center gap-2 cursor-pointer text-xs py-1.5"
+                                >
+                                  <Icon className="h-3 w-3 text-primary" />
+                                  <span>{cmd.command}</span>
+                                </DropdownMenuItem>
+                              )
+                            })}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {/* Voice Input */}
+                        <button
+                          type="button"
+                          disabled={isLoading || selectedReposCount === 0}
+                          className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                          title="Voice input"
+                        >
+                          <Mic className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
+                          <span className="text-[11px] font-medium">Voice</span>
+                        </button>
+                      </div>
+
+                      {/* Send Button */}
+                      <div className="pointer-events-auto">
+                        <Button
+                          type="submit"
+                          size="icon"
+                          disabled={!input.trim() || isLoading || selectedReposCount === 0}
+                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                          aria-label="Send message"
+                        >
+                          {isLoading ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Send className="h-3 w-3" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
             </div>
           </div>
-        )}
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Messages Area with Auto-Scroll */}
+          <Conversation className="flex-1 pt-12 transition-all duration-500 ease-in-out animate-in fade-in slide-in-from-top-4">
+            <ConversationContent className="space-y-6">
+              {messages.map((message, index) => {
+                const isLastMessage = index === messages.length - 1
+                const displayContent = (message.role === 'assistant' && isLastMessage && isStreaming)
+                  ? streamingText
+                  : message.content
 
-        <form onSubmit={handleSubmit} className="space-y-2">
+                return (
+                  <Message key={message.id} from={message.role}>
+                    {message.role === 'assistant' && (
+                      <MessageAvatar
+                        src='/avatars/bot.jpg'
+                        name='AI'
+                      />
+                    )}
+                    <div className="flex flex-col max-w-[80%]">
+                      <MessageContent className="relative">
+                        {message.role === 'assistant' ? (
+                          <Response className="text-sm">{displayContent}</Response>
+                        ) : (
+                          <p className="whitespace-pre-wrap">{message.content}</p>
+                        )}
 
-          <div className="relative">
-            {/* Command Palette */}
-            {showCommands && filteredCommands.length > 0 && (
-              <div className="absolute bottom-full left-0 right-0 mb-2 rounded-lg border bg-popover shadow-lg animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2">
-                <div className="p-2 max-h-[280px] overflow-y-auto">
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground/70 px-2 py-1 mb-1">
-                    Available Commands
+                        {/* Code Sources - só mostra quando terminar o streaming */}
+                        {message.sources && message.sources.length > 0 && (!isLastMessage || !isStreaming) && (
+                          <div className="space-y-2 pt-2 mt-2 border-t border-border/50">
+                            <p className="text-xs font-medium opacity-70">Sources:</p>
+                            <div className="space-y-2">
+                              {message.sources.map((source, idx) => (
+                                <CodeSourceCard key={idx} source={source} />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Actions absolutamente posicionados no canto inferior direito do balão */}
+                        {message.role === 'assistant' && (!isLastMessage || !isStreaming) && (
+                          <Actions className="absolute -bottom-6 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <Action
+                              tooltip="Copy message"
+                              onClick={() => navigator.clipboard.writeText(message.content)}
+                            >
+                              <Copy size={12} />
+                            </Action>
+                            <Action
+                              tooltip="Regenerate"
+                              onClick={() => console.log('Regenerate')}
+                            >
+                              <RotateCw size={12} />
+                            </Action>
+                            <Action
+                              tooltip="Good response"
+                              onClick={() => console.log('Thumbs up')}
+                            >
+                              <ThumbsUp size={12} />
+                            </Action>
+                            <Action
+                              tooltip="Bad response"
+                              onClick={() => console.log('Thumbs down')}
+                            >
+                              <ThumbsDown size={12} />
+                            </Action>
+                          </Actions>
+                        )}
+                      </MessageContent>
+                    </div>
+                    {message.role === 'user' && (
+                      <MessageAvatar
+                        src='/avatars/user.jpg'
+                        name='You'
+                      />
+                    )}
+                  </Message>
+                )
+              })}
+              {isLoading && <LoadingMessage />}
+            </ConversationContent>
+            <ConversationScrollButton />
+          </Conversation>
+
+          {/* Input Area - Bottom when messages exist */}
+          <div className="border-t bg-background p-4 relative flex-shrink-0">
+            <form onSubmit={handleSubmit}>
+              <div className="relative">
+                {/* Command Palette */}
+                {showCommands && filteredCommands.length > 0 && (
+                  <div className="absolute bottom-full left-0 right-0 mb-2 rounded-lg border bg-popover shadow-lg animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2">
+                    <div className="p-2 max-h-[280px] overflow-y-auto">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground/70 px-2 py-1 mb-1">
+                        Available Commands
+                      </div>
+                      {filteredCommands.map((cmd) => {
+                        const Icon = cmd.icon
+                        return (
+                          <button
+                            key={cmd.command}
+                            type="button"
+                            onClick={() => selectCommand(cmd.command)}
+                            className="w-full flex items-start gap-3 px-2 py-2 rounded-md hover:bg-muted/50 transition-colors duration-200 text-left group"
+                          >
+                            <div className="mt-0.5 shrink-0">
+                              <Icon className="h-4 w-4 text-primary transition-all duration-300 group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground">{cmd.command}</p>
+                              <p className="text-xs text-muted-foreground line-clamp-1">{cmd.description}</p>
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
-                  {filteredCommands.map((cmd) => {
-                    const Icon = cmd.icon
-                    return (
-                      <button
-                        key={cmd.command}
-                        type="button"
-                        onClick={() => selectCommand(cmd.command)}
-                        className="w-full flex items-start gap-3 px-2 py-2 rounded-md hover:bg-muted/50 transition-colors duration-200 text-left group"
-                      >
-                        <div className="mt-0.5 shrink-0">
-                          <Icon className="h-4 w-4 text-primary transition-all duration-300 group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground">{cmd.command}</p>
-                          <p className="text-xs text-muted-foreground line-clamp-1">{cmd.description}</p>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
+                )}
 
-            <div className="relative">
-              <Textarea
-                ref={textareaRef}
-                value={input}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                placeholder={
-                  selectedReposCount === 0
-                    ? "Select repositories to start chatting..."
-                    : "Ask anything about your code..."
-                }
-                disabled={isLoading || selectedReposCount === 0}
-                className="min-h-[100px] resize-none pr-2 pb-10"
-              />
-
-              {/* Action Badges - Inside Textarea */}
-              <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
-                <div className="flex items-center gap-1.5 pointer-events-auto">
-                  {/* Attach Files/Repos */}
-                  <button
-                    type="button"
+                <div className="relative">
+                  <Textarea
+                    ref={textareaRef}
+                    value={input}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                    placeholder={
+                      selectedReposCount === 0
+                        ? "Select repositories to start chatting..."
+                        : "Ask anything about your code..."
+                    }
                     disabled={isLoading || selectedReposCount === 0}
-                    className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
-                    title="Attach file or repository"
-                  >
-                    <Paperclip className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
-                    <span className="text-[11px] font-medium">Attach</span>
-                  </button>
+                    className="min-h-[100px] resize-none pr-2 pb-10"
+                  />
 
-                  {/* Quick Commands */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                  {/* Action Badges - Inside Textarea */}
+                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
+                    <div className="flex items-center gap-1.5 pointer-events-auto">
+                      {/* Attach Files/Repos */}
                       <button
                         type="button"
                         disabled={isLoading || selectedReposCount === 0}
                         className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
-                        title="Quick commands"
+                        title="Attach file or repository"
                       >
-                        <Command className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
-                        <span className="text-[11px] font-medium">Commands</span>
+                        <Paperclip className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
+                        <span className="text-[11px] font-medium">Attach</span>
                       </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent side="top" align="start" className="w-64">
-                      <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/70">Quick Commands</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      {availableCommands.slice(0, 4).map((cmd) => {
-                        const Icon = cmd.icon
-                        return (
-                          <DropdownMenuItem
-                            key={cmd.command}
-                            onClick={() => {
-                              setInput(cmd.command + " ")
-                              textareaRef.current?.focus()
-                            }}
-                            className="flex items-center gap-2 cursor-pointer text-xs py-1.5"
+
+                      {/* Quick Commands */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            disabled={isLoading || selectedReposCount === 0}
+                            className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                            title="Quick commands"
                           >
-                            <Icon className="h-3 w-3 text-primary" />
-                            <span>{cmd.command}</span>
-                          </DropdownMenuItem>
-                        )
-                      })}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                            <Command className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
+                            <span className="text-[11px] font-medium">Commands</span>
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent side="top" align="start" className="w-64">
+                          <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/70">Quick Commands</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {availableCommands.slice(0, 4).map((cmd) => {
+                            const Icon = cmd.icon
+                            return (
+                              <DropdownMenuItem
+                                key={cmd.command}
+                                onClick={() => {
+                                  setInput(cmd.command + " ")
+                                  textareaRef.current?.focus()
+                                }}
+                                className="flex items-center gap-2 cursor-pointer text-xs py-1.5"
+                              >
+                                <Icon className="h-3 w-3 text-primary" />
+                                <span>{cmd.command}</span>
+                              </DropdownMenuItem>
+                            )
+                          })}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
 
-                  {/* Voice Input */}
-                  <button
-                    type="button"
-                    disabled={isLoading || selectedReposCount === 0}
-                    className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
-                    title="Voice input"
-                  >
-                    <Mic className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
-                    <span className="text-[11px] font-medium">Voice</span>
-                  </button>
-                </div>
+                      {/* Voice Input */}
+                      <button
+                        type="button"
+                        disabled={isLoading || selectedReposCount === 0}
+                        className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                        title="Voice input"
+                      >
+                        <Mic className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
+                        <span className="text-[11px] font-medium">Voice</span>
+                      </button>
+                    </div>
 
-                {/* Send Button */}
-                <div className="pointer-events-auto">
-                  <Button
-                    type="submit"
-                    size="icon"
-                    disabled={!input.trim() || isLoading || selectedReposCount === 0}
-                    className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
-                    aria-label="Send message"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Send className="h-3 w-3" />
-                    )}
-                  </Button>
+                    {/* Send/Stop Button */}
+                    <div className="pointer-events-auto">
+                      {(isStreaming || isLoading) ? (
+                        <Button
+                          type="button"
+                          size="icon"
+                          onClick={() => {
+                            setIsStreaming(false)
+                            console.log('Stop generation')
+                          }}
+                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                          aria-label="Stop generating"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                            <rect x="6" y="6" width="12" height="12" />
+                          </svg>
+                        </Button>
+                      ) : (
+                        <Button
+                          type="submit"
+                          size="icon"
+                          disabled={!input.trim() || selectedReposCount === 0}
+                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                          aria-label="Send message"
+                        >
+                          <Send className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </form>
           </div>
-
-          {/* Help Text */}
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <kbd className="inline-flex items-center px-1 py-0.5 rounded bg-muted border border-border/50 text-[9px] font-mono font-medium shadow-sm">
-                ↵
-              </kbd>
-              <span>send</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <kbd className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-muted border border-border/50 text-[9px] font-mono font-medium shadow-sm">
-                ⇧↵
-              </kbd>
-              <span>new line</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <kbd className="inline-flex items-center px-1 py-0.5 rounded bg-muted border border-border/50 text-[9px] font-mono font-medium shadow-sm">
-                /
-              </kbd>
-              <span>commands</span>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-function EmptyState({ selectedReposCount }: { selectedReposCount: number }) {
-  return (
-    <div className="flex h-full items-center justify-center">
-      <div className="max-w-md text-center space-y-3">
-        <h2 className="text-2xl font-semibold text-foreground">
-          {selectedReposCount === 0
-            ? "Select Repositories to Start"
-            : "Start a Conversation"}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          {selectedReposCount === 0
-            ? "Choose one or more repositories from the right sidebar to begin chatting with the AI."
-            : "Ask questions about your code, request explanations, or explore your codebase with AI assistance."}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function MessageBubble({ message }: { message: ChatMessage }) {
-  const isUser = message.role === "user"
-
-  return (
-    <div
-      className={cn(
-        "flex gap-3",
-        isUser ? "justify-end" : "justify-start"
-      )}
-    >
-      <div
-        className={cn(
-          "max-w-[80%] space-y-2 rounded-lg p-4",
-          isUser
-            ? "bg-primary text-primary-foreground"
-            : "bg-muted"
-        )}
-      >
-        <div className="prose prose-sm dark:prose-invert">
-          <p className="whitespace-pre-wrap">{message.content}</p>
         </div>
-
-        {/* Code Sources */}
-        {message.sources && message.sources.length > 0 && (
-          <div className="space-y-2 pt-2">
-            <p className="text-xs font-medium opacity-70">Sources:</p>
-            <div className="space-y-2">
-              {message.sources.map((source, idx) => (
-                <CodeSourceCard key={idx} source={source} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        <p className="text-xs opacity-50">
-          {new Date(message.timestamp).toLocaleTimeString()}
-        </p>
-      </div>
+      )}
     </div>
   )
 }
+
+
+// Helper function to get greeting based on time
+function getGreeting() {
+  const hour = new Date().getHours()
+  if (hour < 12) return "Good Morning"
+  if (hour < 18) return "Good Afternoon"
+  return "Good Evening"
+}
+
+// Quick action buttons
+const quickActions = [
+  { icon: Bot, label: "Analyze Repo" },
+  { icon: Search, label: "Search Code" },
+  { icon: Sparkles, label: "Review PR" },
+]
+
 
 function CodeSourceCard({ source }: { source: CodeSource }) {
+  const [isOpen, setIsOpen] = React.useState(false)
+
   return (
-    <Card className="bg-background/50">
-      <CardHeader className="p-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Code2 className="h-4 w-4" />
-            <div className="space-y-0.5">
-              <p className="text-sm font-medium">{source.file_path}</p>
-              <p className="text-xs text-muted-foreground">
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <div className="group rounded-md border border-border/40 bg-background/50 hover:bg-background/80 transition-colors duration-200">
+        <CollapsibleTrigger asChild>
+          <button className="w-full flex items-center gap-2 p-2 text-left">
+            <Code2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium truncate">{source.file_path}</p>
+              <p className="text-[10px] text-muted-foreground/70">
                 Lines {source.line_start}-{source.line_end} • {source.repository}
               </p>
             </div>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="p-3 pt-0">
-        <pre className="overflow-x-auto rounded-md bg-muted p-2 text-xs">
-          <code>{source.content}</code>
-        </pre>
-      </CardContent>
-    </Card>
+            <ChevronRight
+              className={cn(
+                "h-3 w-3 text-muted-foreground shrink-0 transition-transform duration-200",
+                isOpen && "rotate-90"
+              )}
+            />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="px-2 pb-2">
+          <pre className="overflow-x-auto rounded-md bg-muted p-2 text-[10px] leading-relaxed">
+            <code>{source.content}</code>
+          </pre>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
   )
 }
 
 function LoadingMessage() {
   return (
-    <div className="flex justify-start">
-      <div className="max-w-[80%] rounded-lg bg-muted p-4">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <p className="text-sm">AI is thinking...</p>
-        </div>
-      </div>
+    <div className="flex items-center gap-2 px-4">
+      <Loader size={16} className="text-primary" />
+      <ShimmeringText
+        text="AI is thinking..."
+        duration={1.2}
+        wave={true}
+        shimmeringColor="hsl(var(--primary))"
+        color="hsl(var(--muted-foreground))"
+        className="text-sm"
+      />
     </div>
   )
 }

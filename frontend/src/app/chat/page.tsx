@@ -76,7 +76,9 @@ const mockRepositories: Repository[] = [
 
 export default function ChatPage() {
   const [repositories] = React.useState<Repository[]>(mockRepositories)
-  const [selectedRepos, setSelectedRepos] = React.useState<string[]>([])
+  const [selectedRepos, setSelectedRepos] = React.useState<string[]>(
+    mockRepositories.map((repo) => repo.id)
+  )
   const [messages, setMessages] = React.useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = React.useState(false)
 
@@ -91,6 +93,10 @@ export default function ChatPage() {
   const handleFavoriteToggle = (repoId: string) => {
     // TODO: API call to update favorite status
     console.log("Toggle favorite:", repoId)
+  }
+
+  const handleDeselectAll = () => {
+    setSelectedRepos([])
   }
 
   const handleSendMessage = async (content: string) => {
@@ -117,12 +123,38 @@ export default function ChatPage() {
       // Simulate API delay
       await new Promise((resolve) => setTimeout(resolve, 2000))
 
-      // Mock AI response
+      // Mock AI response with rich markdown
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content:
-          "I found the authentication logic in your codebase. Here's what I discovered:",
+        content: `I found the **authentication logic** in your codebase. Here's what I discovered:
+
+## Overview
+The authentication system uses JWT tokens for user verification. Here are the key components:
+
+### Main Features
+- Token validation with \`jwt.verify()\`
+- Environment-based secret key management
+- Error handling for invalid tokens
+
+### Implementation Details
+\`\`\`typescript
+export async function authenticateUser(token: string) {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    return decoded
+  } catch (error) {
+    throw new Error('Invalid token')
+  }
+}
+\`\`\`
+
+### Security Considerations
+1. **Secret Management**: Uses environment variables
+2. **Token Expiration**: Automatically handled by JWT
+3. **Error Handling**: Graceful failure on invalid tokens
+
+> **Note:** Make sure to rotate your JWT_SECRET regularly for better security.`,
         timestamp: new Date().toISOString(),
         sources: [
           {
@@ -153,9 +185,9 @@ export default function ChatPage() {
 
   return (
     <MainLayout>
-      <div className="flex h-full">
+      <div className="flex flex-1 overflow-hidden min-h-0">
         {/* Main Chat Area */}
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col overflow-hidden min-h-0">
           <ChatInterface
             messages={messages}
             isLoading={isLoading}
@@ -165,12 +197,13 @@ export default function ChatPage() {
         </div>
 
         {/* Repository Selector Sidebar */}
-        <div className="w-80">
+        <div className="w-80 overflow-y-auto">
           <RepoSelectorSidebar
             repositories={repositories}
             selectedRepos={selectedRepos}
             onRepoToggle={handleRepoToggle}
             onFavoriteToggle={handleFavoriteToggle}
+            onDeselectAll={handleDeselectAll}
           />
         </div>
       </div>
