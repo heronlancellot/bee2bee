@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Star, GitBranch, Lock, Globe, Search, ChevronDown, X } from "lucide-react"
+import { Star, GitBranch, Lock, Globe, Search, ChevronDown, X, Filter, FilterX } from "lucide-react"
 import { Repository } from "@/types"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,7 @@ interface RepoSelectorSidebarProps {
   selectedRepos: string[]
   onRepoToggle: (repoId: string) => void
   onFavoriteToggle: (repoId: string) => void
+  onDeselectAll: () => void
 }
 
 export function RepoSelectorSidebar({
@@ -33,24 +34,29 @@ export function RepoSelectorSidebar({
   selectedRepos,
   onRepoToggle,
   onFavoriteToggle,
+  onDeselectAll,
 }: RepoSelectorSidebarProps) {
   const [search, setSearch] = React.useState("")
   const [showFavorites, setShowFavorites] = React.useState(true)
   const [showPrivate, setShowPrivate] = React.useState(true)
   const [showPublic, setShowPublic] = React.useState(true)
+  const [showOnlySelected, setShowOnlySelected] = React.useState(false)
 
   const favorites = repositories.filter((r) => r.is_favorite)
   const privateRepos = repositories.filter((r) => r.is_private && !r.is_favorite)
   const publicRepos = repositories.filter((r) => !r.is_private && !r.is_favorite)
 
   const filteredFavorites = favorites.filter((r) =>
-    r.full_name.toLowerCase().includes(search.toLowerCase())
+    r.full_name.toLowerCase().includes(search.toLowerCase()) &&
+    (!showOnlySelected || selectedRepos.includes(r.id))
   )
   const filteredPrivate = privateRepos.filter((r) =>
-    r.full_name.toLowerCase().includes(search.toLowerCase())
+    r.full_name.toLowerCase().includes(search.toLowerCase()) &&
+    (!showOnlySelected || selectedRepos.includes(r.id))
   )
   const filteredPublic = publicRepos.filter((r) =>
-    r.full_name.toLowerCase().includes(search.toLowerCase())
+    r.full_name.toLowerCase().includes(search.toLowerCase()) &&
+    (!showOnlySelected || selectedRepos.includes(r.id))
   )
 
   return (
@@ -85,6 +91,55 @@ export function RepoSelectorSidebar({
               <X className="h-3 w-3" />
             </Button>
           )}
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="px-3 pb-3">
+        <div className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-md bg-sidebar-accent/30 border border-sidebar-border/30">
+          <div className="flex items-center gap-1.5">
+            <Checkbox
+              id="select-all"
+              checked={selectedRepos.length === repositories.length}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  // Select all
+                  const allIds = repositories.map((r) => r.id)
+                  allIds.forEach((id) => {
+                    if (!selectedRepos.includes(id)) {
+                      onRepoToggle(id)
+                    }
+                  })
+                } else {
+                  // Deselect all
+                  onDeselectAll()
+                }
+              }}
+              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary h-3 w-3 rounded-[3px]"
+            />
+            <label
+              htmlFor="select-all"
+              className="text-[11px] text-sidebar-foreground/70 cursor-pointer select-none"
+            >
+              All ({selectedRepos.length}/{repositories.length})
+            </label>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowOnlySelected(!showOnlySelected)}
+            className={cn(
+              "h-5 w-5 p-0 hover:bg-sidebar-accent/50 transition-colors rounded-[4px]",
+              showOnlySelected ? "text-primary hover:text-primary" : "text-sidebar-foreground/50 hover:text-primary"
+            )}
+            aria-label={showOnlySelected ? "Show all repos" : "Show selected only"}
+          >
+            {showOnlySelected ? (
+              <FilterX className="h-3 w-3" />
+            ) : (
+              <Filter className="h-3 w-3" />
+            )}
+          </Button>
         </div>
       </div>
 
@@ -264,12 +319,12 @@ function RepoItem({
     <article className="px-1">
       <div
         className={cn(
-          "group relative flex items-center gap-2 rounded-md p-2 transition-all duration-300 cursor-pointer border",
-          "hover:bg-transparent hover:border-primary/30 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)]",
-          "focus-within:ring-1 focus-within:ring-primary",
+          "group relative flex items-center rounded-lg transition-all duration-200 cursor-pointer border gap-2 p-1.5",
+          "hover:bg-sidebar-accent/30 hover:border-primary/50",
+          "focus-within:ring-2 focus-within:ring-primary/20",
           isSelected
-            ? "bg-sidebar-accent/50 border-primary/40"
-            : "border-sidebar-border/50 bg-sidebar/30"
+            ? "bg-primary/5 border-primary/60 shadow-sm"
+            : "border-sidebar-border/40 bg-sidebar/50 hover:shadow-sm"
         )}
         onClick={onToggle}
         role="button"
@@ -286,7 +341,7 @@ function RepoItem({
         <Checkbox
           checked={isSelected}
           onCheckedChange={onToggle}
-          className="shrink-0"
+          className="shrink-0 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all duration-200 h-3 w-3"
           onClick={(e) => e.stopPropagation()}
           aria-label={`Toggle ${repo.full_name}`}
         />

@@ -76,7 +76,9 @@ const mockRepositories: Repository[] = [
 
 export default function ChatPage() {
   const [repositories] = React.useState<Repository[]>(mockRepositories)
-  const [selectedRepos, setSelectedRepos] = React.useState<string[]>([])
+  const [selectedRepos, setSelectedRepos] = React.useState<string[]>(
+    mockRepositories.map((repo) => repo.id)
+  )
   const [messages, setMessages] = React.useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = React.useState(false)
 
@@ -91,6 +93,10 @@ export default function ChatPage() {
   const handleFavoriteToggle = (repoId: string) => {
     // TODO: API call to update favorite status
     console.log("Toggle favorite:", repoId)
+  }
+
+  const handleDeselectAll = () => {
+    setSelectedRepos([])
   }
 
   const handleSendMessage = async (content: string) => {
@@ -171,6 +177,7 @@ export default function ChatPage() {
             selectedRepos={selectedRepos}
             onRepoToggle={handleRepoToggle}
             onFavoriteToggle={handleFavoriteToggle}
+            onDeselectAll={handleDeselectAll}
           />
         </div>
       </div>
