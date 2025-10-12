@@ -28,7 +28,7 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
-import GlareHover from "@/components/GlareHover"
+// import GlareHover from "@/components/GlareHover" // TODO: missing component
 
 const data = {
   user: {
