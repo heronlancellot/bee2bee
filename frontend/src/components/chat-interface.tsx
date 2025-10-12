@@ -4,6 +4,7 @@ import * as React from "react"
 import { Send, Loader2, Code2, FileText, ChevronDown, MessageSquare, Bot, Target, Search, Users, Sparkles, Zap, Paperclip, Mic, Command, ChevronRight, User } from "lucide-react"
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai/conversation"
 import { Message, MessageContent, MessageAvatar } from "@/components/ai/message"
+import { Response } from "@/components/ai/response"
 import { ChatMessage, CodeSource } from "@/types"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -73,9 +74,35 @@ export function ChatInterface({
   const [filteredCommands, setFilteredCommands] = React.useState(availableCommands)
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
   const suggestionsRef = React.useRef<HTMLDivElement>(null)
+  const [streamingText, setStreamingText] = React.useState("")
+  const [isStreaming, setIsStreaming] = React.useState(false)
 
   // Check if chat is empty (no messages)
   const isEmpty = messages.length === 0
+
+  // Simulate streaming effect for the last AI message
+  React.useEffect(() => {
+    const lastMessage = messages[messages.length - 1]
+    if (lastMessage && lastMessage.role === 'assistant' && !isStreaming) {
+      setIsStreaming(true)
+      setStreamingText("")
+
+      const fullText = lastMessage.content
+      let currentIndex = 0
+
+      const interval = setInterval(() => {
+        if (currentIndex < fullText.length) {
+          setStreamingText(fullText.substring(0, currentIndex + 1))
+          currentIndex++
+        } else {
+          setIsStreaming(false)
+          clearInterval(interval)
+        }
+      }, 20) // Velocidade do streaming (20ms por caractere)
+
+      return () => clearInterval(interval)
+    }
+  }, [messages])
 
   const scrollSuggestions = () => {
     if (suggestionsRef.current) {
@@ -369,39 +396,48 @@ export function ChatInterface({
           {/* Messages Area with Auto-Scroll */}
           <Conversation className="flex-1 pt-12 transition-all duration-500 ease-in-out animate-in fade-in slide-in-from-top-4">
             <ConversationContent className="space-y-6">
-              {messages.map((message) => (
-                <Message key={message.id} from={message.role}>
-                  {message.role === 'assistant' && (
-                    <MessageAvatar
-                      src='/avatars/bot.jpg'
-                      name='AI'
-                    />
-                  )}
-                  <MessageContent>
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <p className="whitespace-pre-wrap">{message.content}</p>
-                    </div>
+              {messages.map((message, index) => {
+                const isLastMessage = index === messages.length - 1
+                const displayContent = (message.role === 'assistant' && isLastMessage && isStreaming)
+                  ? streamingText
+                  : message.content
 
-                    {/* Code Sources */}
-                    {message.sources && message.sources.length > 0 && (
-                      <div className="space-y-2 pt-2 mt-2 border-t border-border/50">
-                        <p className="text-xs font-medium opacity-70">Sources:</p>
-                        <div className="space-y-2">
-                          {message.sources.map((source, idx) => (
-                            <CodeSourceCard key={idx} source={source} />
-                          ))}
-                        </div>
-                      </div>
+                return (
+                  <Message key={message.id} from={message.role}>
+                    {message.role === 'assistant' && (
+                      <MessageAvatar
+                        src='/avatars/bot.jpg'
+                        name='AI'
+                      />
                     )}
-                  </MessageContent>
-                  {message.role === 'user' && (
-                    <MessageAvatar
-                      src='/avatars/user.jpg'
-                      name='You'
-                    />
-                  )}
-                </Message>
-              ))}
+                    <MessageContent>
+                      {message.role === 'assistant' ? (
+                        <Response className="text-sm">{displayContent}</Response>
+                      ) : (
+                        <p className="whitespace-pre-wrap">{message.content}</p>
+                      )}
+
+                      {/* Code Sources - só mostra quando terminar o streaming */}
+                      {message.sources && message.sources.length > 0 && (!isLastMessage || !isStreaming) && (
+                        <div className="space-y-2 pt-2 mt-2 border-t border-border/50">
+                          <p className="text-xs font-medium opacity-70">Sources:</p>
+                          <div className="space-y-2">
+                            {message.sources.map((source, idx) => (
+                              <CodeSourceCard key={idx} source={source} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </MessageContent>
+                    {message.role === 'user' && (
+                      <MessageAvatar
+                        src='/avatars/user.jpg'
+                        name='You'
+                      />
+                    )}
+                  </Message>
+                )
+              })}
               {isLoading && <LoadingMessage />}
             </ConversationContent>
             <ConversationScrollButton />

@@ -123,12 +123,38 @@ export default function ChatPage() {
       // Simulate API delay
       await new Promise((resolve) => setTimeout(resolve, 2000))
 
-      // Mock AI response
+      // Mock AI response with rich markdown
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content:
-          "I found the authentication logic in your codebase. Here's what I discovered:",
+        content: `I found the **authentication logic** in your codebase. Here's what I discovered:
+
+## Overview
+The authentication system uses JWT tokens for user verification. Here are the key components:
+
+### Main Features
+- Token validation with \`jwt.verify()\`
+- Environment-based secret key management
+- Error handling for invalid tokens
+
+### Implementation Details
+\`\`\`typescript
+export async function authenticateUser(token: string) {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    return decoded
+  } catch (error) {
+    throw new Error('Invalid token')
+  }
+}
+\`\`\`
+
+### Security Considerations
+1. **Secret Management**: Uses environment variables
+2. **Token Expiration**: Automatically handled by JWT
+3. **Error Handling**: Graceful failure on invalid tokens
+
+> **Note:** Make sure to rotate your JWT_SECRET regularly for better security.`,
         timestamp: new Date().toISOString(),
         sources: [
           {
