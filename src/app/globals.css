@@ -1,0 +1,171 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* View Transition for theme toggle */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+
+  ::view-transition-old(root) {
+    z-index: 1;
+  }
+
+  ::view-transition-new(root) {
+    z-index: 9999;
+  }
+
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 142 70% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 142 70% 35%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 142 60% 50%;
+    --radius: 0.75rem;
+    --chart-1: 142 60% 50%;
+    --chart-2: 142 55% 45%;
+    --chart-3: 142 50% 40%;
+    --chart-4: 142 45% 35%;
+    --chart-5: 142 40% 30%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 142 65% 48%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 142 45% 92%;
+    --sidebar-accent-foreground: 142 70% 35%;
+    --sidebar-border: 0 0% 89.8%;
+    --sidebar-ring: 142 60% 50%;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 142 76% 36%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 142 76% 36%;
+    --chart-1: 142 76% 36%;
+    --chart-2: 142 72% 31%;
+    --chart-3: 142 68% 27%;
+    --chart-4: 142 64% 24%;
+    --chart-5: 142 60% 21%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 142 76% 36%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 142 76% 36%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 142 76% 36%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Custom scrollbar - fino e clean */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+    transition: background 0.3s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--accent) / 0.5);
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+}
+
+@layer components {
+  /* Premium sidebar hover - SEM fundo, foco total em texto/ícone */
+  .sidebar-hover-premium {
+    @apply transition-all duration-300 ease-out cursor-pointer;
+  }
+
+  .sidebar-hover-premium:hover {
+    background-color: transparent !important;
+    color: hsl(var(--accent)) !important;
+    transform: translateX(0.3px);
+  }
+
+  .sidebar-hover-premium:active {
+    @apply scale-[0.99];
+    @apply transition-all duration-100;
+  }
+
+  /* Icon glow effect - destaque PRINCIPAL mais suave */
+  .sidebar-icon-glow {
+    @apply transition-all duration-300 ease-out;
+    filter: drop-shadow(0 0 0 transparent);
+  }
+
+  .sidebar-icon-glow:hover {
+    filter: drop-shadow(0 0 6px hsl(142 70% 45% / 0.5))
+            drop-shadow(0 0 10px hsl(142 70% 45% / 0.3));
+    transform: scale(1.08) rotate(2deg);
+  }
+
+  /* Custom dropdown menu item hover - sem !important */
+  [data-radix-collection-item][role="menuitem"] {
+    background-color: transparent;
+  }
+
+  [data-radix-collection-item][role="menuitem"]:hover {
+    background-color: hsl(var(--muted));
+    color: hsl(var(--foreground));
+  }
+
+  .dark [data-radix-collection-item][role="menuitem"]:hover {
+    background-color: hsl(var(--primary) / 0.15);
+    color: hsl(var(--primary));
+  }
+}
