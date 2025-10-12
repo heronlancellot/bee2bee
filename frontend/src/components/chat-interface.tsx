@@ -1,11 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { Send, Loader2, Code2, FileText, ChevronDown, MessageSquare, Bot, Target, Search, Users, Sparkles, Zap, Paperclip, Mic, Command, ChevronRight, User } from "lucide-react"
+import { Send, Loader2, Code2, FileText, ChevronDown, MessageSquare, Bot, Target, Search, Users, Sparkles, Zap, Paperclip, Mic, Command, ChevronRight, User, Copy, RotateCw, ThumbsUp, ThumbsDown } from "lucide-react"
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai/conversation"
 import { Message, MessageContent, MessageAvatar } from "@/components/ai/message"
 import { Response } from "@/components/ai/response"
 import { ShimmeringText } from "@/components/ai/shimmering-text"
+import { Loader } from "@/components/ai/loader"
+import { Actions, Action } from "@/components/ai/actions"
 import { ChatMessage, CodeSource } from "@/types"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -411,25 +413,57 @@ export function ChatInterface({
                         name='AI'
                       />
                     )}
-                    <MessageContent>
-                      {message.role === 'assistant' ? (
-                        <Response className="text-sm">{displayContent}</Response>
-                      ) : (
-                        <p className="whitespace-pre-wrap">{message.content}</p>
-                      )}
+                    <div className="flex flex-col max-w-[80%]">
+                      <MessageContent className="relative">
+                        {message.role === 'assistant' ? (
+                          <Response className="text-sm">{displayContent}</Response>
+                        ) : (
+                          <p className="whitespace-pre-wrap">{message.content}</p>
+                        )}
 
-                      {/* Code Sources - só mostra quando terminar o streaming */}
-                      {message.sources && message.sources.length > 0 && (!isLastMessage || !isStreaming) && (
-                        <div className="space-y-2 pt-2 mt-2 border-t border-border/50">
-                          <p className="text-xs font-medium opacity-70">Sources:</p>
-                          <div className="space-y-2">
-                            {message.sources.map((source, idx) => (
-                              <CodeSourceCard key={idx} source={source} />
-                            ))}
+                        {/* Code Sources - só mostra quando terminar o streaming */}
+                        {message.sources && message.sources.length > 0 && (!isLastMessage || !isStreaming) && (
+                          <div className="space-y-2 pt-2 mt-2 border-t border-border/50">
+                            <p className="text-xs font-medium opacity-70">Sources:</p>
+                            <div className="space-y-2">
+                              {message.sources.map((source, idx) => (
+                                <CodeSourceCard key={idx} source={source} />
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </MessageContent>
+                        )}
+
+                        {/* Actions absolutamente posicionados no canto inferior direito do balão */}
+                        {message.role === 'assistant' && (!isLastMessage || !isStreaming) && (
+                          <Actions className="absolute -bottom-6 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <Action
+                              tooltip="Copy message"
+                              onClick={() => navigator.clipboard.writeText(message.content)}
+                            >
+                              <Copy size={12} />
+                            </Action>
+                            <Action
+                              tooltip="Regenerate"
+                              onClick={() => console.log('Regenerate')}
+                            >
+                              <RotateCw size={12} />
+                            </Action>
+                            <Action
+                              tooltip="Good response"
+                              onClick={() => console.log('Thumbs up')}
+                            >
+                              <ThumbsUp size={12} />
+                            </Action>
+                            <Action
+                              tooltip="Bad response"
+                              onClick={() => console.log('Thumbs down')}
+                            >
+                              <ThumbsDown size={12} />
+                            </Action>
+                          </Actions>
+                        )}
+                      </MessageContent>
+                    </div>
                     {message.role === 'user' && (
                       <MessageAvatar
                         src='/avatars/user.jpg'
@@ -554,21 +588,34 @@ export function ChatInterface({
                       </button>
                     </div>
 
-                    {/* Send Button */}
+                    {/* Send/Stop Button */}
                     <div className="pointer-events-auto">
-                      <Button
-                        type="submit"
-                        size="icon"
-                        disabled={!input.trim() || isLoading || selectedReposCount === 0}
-                        className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
-                        aria-label="Send message"
-                      >
-                        {isLoading ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
+                      {(isStreaming || isLoading) ? (
+                        <Button
+                          type="button"
+                          size="icon"
+                          onClick={() => {
+                            setIsStreaming(false)
+                            console.log('Stop generation')
+                          }}
+                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                          aria-label="Stop generating"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                            <rect x="6" y="6" width="12" height="12" />
+                          </svg>
+                        </Button>
+                      ) : (
+                        <Button
+                          type="submit"
+                          size="icon"
+                          disabled={!input.trim() || selectedReposCount === 0}
+                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                          aria-label="Send message"
+                        >
                           <Send className="h-3 w-3" />
-                        )}
-                      </Button>
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -626,7 +673,7 @@ function CodeSourceCard({ source }: { source: CodeSource }) {
 function LoadingMessage() {
   return (
     <div className="flex items-center gap-2 px-4">
-      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+      <Loader size={16} className="text-primary" />
       <ShimmeringText
         text="AI is thinking..."
         duration={1.2}
