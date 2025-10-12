@@ -159,9 +159,9 @@ export default function ChatPage() {
 
   return (
     <MainLayout>
-      <div className="flex h-full">
+      <div className="flex flex-1 overflow-hidden min-h-0">
         {/* Main Chat Area */}
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col overflow-hidden min-h-0">
           <ChatInterface
             messages={messages}
             isLoading={isLoading}
@@ -171,7 +171,7 @@ export default function ChatPage() {
         </div>
 
         {/* Repository Selector Sidebar */}
-        <div className="w-80">
+        <div className="w-80 overflow-y-auto">
           <RepoSelectorSidebar
             repositories={repositories}
             selectedRepos={selectedRepos}

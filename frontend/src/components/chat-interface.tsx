@@ -1,12 +1,15 @@
 "use client"
 
 import * as React from "react"
-import { Send, Loader2, Code2, FileText, ChevronDown, MessageSquare, Bot, Target, Search, Users, Sparkles, Zap, Paperclip, Mic, Command, ChevronRight } from "lucide-react"
+import { Send, Loader2, Code2, FileText, ChevronDown, MessageSquare, Bot, Target, Search, Users, Sparkles, Zap, Paperclip, Mic, Command, ChevronRight, User } from "lucide-react"
+import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai/conversation"
+import { Message, MessageContent, MessageAvatar } from "@/components/ai/message"
 import { ChatMessage, CodeSource } from "@/types"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   Card,
   CardContent,
@@ -68,23 +71,17 @@ export function ChatInterface({
   const [currentConversation, setCurrentConversation] = React.useState(mockConversations[0])
   const [showCommands, setShowCommands] = React.useState(false)
   const [filteredCommands, setFilteredCommands] = React.useState(availableCommands)
-  const messagesEndRef = React.useRef<HTMLDivElement>(null)
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
   const suggestionsRef = React.useRef<HTMLDivElement>(null)
+
+  // Check if chat is empty (no messages)
+  const isEmpty = messages.length === 0
 
   const scrollSuggestions = () => {
     if (suggestionsRef.current) {
       suggestionsRef.current.scrollBy({ left: 200, behavior: 'smooth' })
     }
   }
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
-
-  React.useEffect(() => {
-    scrollToBottom()
-  }, [messages])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value
@@ -134,7 +131,7 @@ export function ChatInterface({
   }
 
   return (
-    <div className="flex h-full flex-col relative">
+    <div className="flex flex-1 flex-col relative overflow-hidden min-h-0">
       {/* Floating Conversation Selector */}
       <div className="absolute top-3 left-4 z-10">
         <DropdownMenu>
@@ -170,279 +167,443 @@ export function ChatInterface({
         </DropdownMenu>
       </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 pt-12">
-        {messages.length === 0 ? (
-          <EmptyState selectedReposCount={selectedReposCount} />
-        ) : (
-          <div className="space-y-6">
-            {messages.map((message) => (
-              <MessageBubble key={message.id} message={message} />
-            ))}
-            {isLoading && <LoadingMessage />}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
-      </div>
+      {/* Messages Area or Empty State with Centered Chat */}
+      {isEmpty ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-6 transition-all duration-500 ease-in-out">
+          <div className="max-w-2xl w-full transition-all duration-500 ease-in-out">
+            {/* Empty State Content */}
+            <div className="text-center space-y-8 mb-8 transition-all duration-500 ease-in-out animate-in fade-in slide-in-from-bottom-4">
+              {/* Greeting */}
+              <div className="space-y-3">
+                <h1 className="text-3xl font-semibold text-foreground">
+                  {getGreeting()}, Judha
+                </h1>
+                <h2 className="text-xl text-foreground">
+                  How Can I <span className="text-primary">Assist You Today?</span>
+                </h2>
+              </div>
 
-      {/* Input Area */}
-      <div className="border-t bg-background p-4 relative">
-        {/* Smart Suggestions - Floating Above Input */}
-        {!input && selectedReposCount > 0 && (
-          <div className="absolute bottom-full left-0 right-0 mb-3 px-4 z-10 overflow-visible">
-            <div className="flex items-center gap-2 overflow-visible">
-              <div
-                ref={suggestionsRef}
-                className="flex gap-2 overflow-x-auto scrollbar-none flex-1 overflow-y-visible py-1"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-              >
-                {smartSuggestions.map((suggestion, idx) => (
+              {/* Helper Text */}
+              {selectedReposCount === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Select repositories from the right sidebar to start chatting with AI
+                </p>
+              )}
+            </div>
+
+            {/* Floating Chat Input */}
+            <div className="relative">
+              {/* Smart Suggestions - Above Input */}
+              {!input && selectedReposCount > 0 && (
+                <div className="mb-3 overflow-visible">
+                  <div className="flex items-center gap-2 overflow-visible">
+                    <div
+                      ref={suggestionsRef}
+                      className="flex gap-2 overflow-x-auto scrollbar-none flex-1 overflow-y-visible py-1"
+                      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    >
+                      {smartSuggestions.map((suggestion, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setInput(suggestion)
+                            textareaRef.current?.focus()
+                          }}
+                          className="shrink-0 px-3 py-1.5 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 text-xs font-medium text-muted-foreground transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 hover:text-primary hover:shadow-[0_0_4px_hsl(var(--primary)/0.15)]"
+                          style={{
+                            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                          }}
+                        >
+                          "{suggestion}"
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={scrollSuggestions}
+                      className="shrink-0 h-7 w-7 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 flex items-center justify-center transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 group"
+                      style={{
+                        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                      }}
+                    >
+                      <ChevronRight className="h-3 w-3 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.3)]" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit}>
+                <div className="relative">
+                  {/* Command Palette */}
+                  {showCommands && filteredCommands.length > 0 && (
+                    <div className="absolute bottom-full left-0 right-0 mb-2 rounded-lg border bg-popover shadow-lg animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2">
+                      <div className="p-2 max-h-[280px] overflow-y-auto">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground/70 px-2 py-1 mb-1">
+                          Available Commands
+                        </div>
+                        {filteredCommands.map((cmd) => {
+                          const Icon = cmd.icon
+                          return (
+                            <button
+                              key={cmd.command}
+                              type="button"
+                              onClick={() => selectCommand(cmd.command)}
+                              className="w-full flex items-start gap-3 px-2 py-2 rounded-md hover:bg-muted/50 transition-colors duration-200 text-left group"
+                            >
+                              <div className="mt-0.5 shrink-0">
+                                <Icon className="h-4 w-4 text-primary transition-all duration-300 group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground">{cmd.command}</p>
+                                <p className="text-xs text-muted-foreground line-clamp-1">{cmd.description}</p>
+                              </div>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="relative">
+                    <Textarea
+                      ref={textareaRef}
+                      value={input}
+                      onChange={handleInputChange}
+                      onKeyDown={handleKeyDown}
+                      placeholder={
+                        selectedReposCount === 0
+                          ? "Select repositories to start chatting..."
+                          : "Ask anything about your code..."
+                      }
+                      disabled={isLoading || selectedReposCount === 0}
+                      className="min-h-[100px] resize-none pr-2 pb-10"
+                    />
+
+                    {/* Action Badges - Inside Textarea */}
+                    <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
+                      <div className="flex items-center gap-1.5 pointer-events-auto">
+                        {/* Attach Files/Repos */}
+                        <button
+                          type="button"
+                          disabled={isLoading || selectedReposCount === 0}
+                          className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                          title="Attach file or repository"
+                        >
+                          <Paperclip className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
+                          <span className="text-[11px] font-medium">Attach</span>
+                        </button>
+
+                        {/* Quick Commands */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              disabled={isLoading || selectedReposCount === 0}
+                              className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                              title="Quick commands"
+                            >
+                              <Command className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
+                              <span className="text-[11px] font-medium">Commands</span>
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent side="top" align="start" className="w-64">
+                            <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/70">Quick Commands</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {availableCommands.slice(0, 4).map((cmd) => {
+                              const Icon = cmd.icon
+                              return (
+                                <DropdownMenuItem
+                                  key={cmd.command}
+                                  onClick={() => {
+                                    setInput(cmd.command + " ")
+                                    textareaRef.current?.focus()
+                                  }}
+                                  className="flex items-center gap-2 cursor-pointer text-xs py-1.5"
+                                >
+                                  <Icon className="h-3 w-3 text-primary" />
+                                  <span>{cmd.command}</span>
+                                </DropdownMenuItem>
+                              )
+                            })}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {/* Voice Input */}
+                        <button
+                          type="button"
+                          disabled={isLoading || selectedReposCount === 0}
+                          className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                          title="Voice input"
+                        >
+                          <Mic className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
+                          <span className="text-[11px] font-medium">Voice</span>
+                        </button>
+                      </div>
+
+                      {/* Send Button */}
+                      <div className="pointer-events-auto">
+                        <Button
+                          type="submit"
+                          size="icon"
+                          disabled={!input.trim() || isLoading || selectedReposCount === 0}
+                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                          aria-label="Send message"
+                        >
+                          {isLoading ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Send className="h-3 w-3" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Messages Area with Auto-Scroll */}
+          <Conversation className="flex-1 pt-12 transition-all duration-500 ease-in-out animate-in fade-in slide-in-from-top-4">
+            <ConversationContent className="space-y-6">
+              {messages.map((message) => (
+                <Message key={message.id} from={message.role}>
+                  {message.role === 'assistant' && (
+                    <MessageAvatar
+                      src='/avatars/bot.jpg'
+                      name='AI'
+                    />
+                  )}
+                  <MessageContent>
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <p className="whitespace-pre-wrap">{message.content}</p>
+                    </div>
+
+                    {/* Code Sources */}
+                    {message.sources && message.sources.length > 0 && (
+                      <div className="space-y-2 pt-2 mt-2 border-t border-border/50">
+                        <p className="text-xs font-medium opacity-70">Sources:</p>
+                        <div className="space-y-2">
+                          {message.sources.map((source, idx) => (
+                            <CodeSourceCard key={idx} source={source} />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <p className="text-xs opacity-50 mt-2">
+                      {new Date(message.timestamp).toLocaleTimeString()}
+                    </p>
+                  </MessageContent>
+                  {message.role === 'user' && (
+                    <MessageAvatar
+                      src='/avatars/user.jpg'
+                      name='You'
+                    />
+                  )}
+                </Message>
+              ))}
+              {isLoading && <LoadingMessage />}
+            </ConversationContent>
+            <ConversationScrollButton />
+          </Conversation>
+
+          {/* Input Area - Bottom when messages exist */}
+          <div className="border-t bg-background p-4 relative flex-shrink-0">
+            {/* Smart Suggestions - Floating Above Input */}
+            {!input && selectedReposCount > 0 && (
+              <div className="absolute bottom-full left-0 right-0 mb-3 px-4 z-10 overflow-visible">
+                <div className="flex items-center gap-2 overflow-visible">
+                  <div
+                    ref={suggestionsRef}
+                    className="flex gap-2 overflow-x-auto scrollbar-none flex-1 overflow-y-visible py-1"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  >
+                    {smartSuggestions.map((suggestion, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setInput(suggestion)
+                          textareaRef.current?.focus()
+                        }}
+                        className="shrink-0 px-3 py-1.5 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 text-xs font-medium text-muted-foreground transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 hover:text-primary hover:shadow-[0_0_4px_hsl(var(--primary)/0.15)]"
+                        style={{
+                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                        }}
+                      >
+                        "{suggestion}"
+                      </button>
+                    ))}
+                  </div>
                   <button
-                    key={idx}
                     type="button"
-                    onClick={() => {
-                      setInput(suggestion)
-                      textareaRef.current?.focus()
-                    }}
-                    className="shrink-0 px-3 py-1.5 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 text-xs font-medium text-muted-foreground transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 hover:text-primary hover:shadow-[0_0_4px_hsl(var(--primary)/0.15)]"
+                    onClick={scrollSuggestions}
+                    className="shrink-0 h-7 w-7 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 flex items-center justify-center transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 group"
                     style={{
                       boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
                     }}
                   >
-                    "{suggestion}"
+                    <ChevronRight className="h-3 w-3 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.3)]" />
                   </button>
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={scrollSuggestions}
-                className="shrink-0 h-7 w-7 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 flex items-center justify-center transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 group"
-                style={{
-                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                }}
-              >
-                <ChevronRight className="h-3 w-3 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.3)]" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-2">
-
-          <div className="relative">
-            {/* Command Palette */}
-            {showCommands && filteredCommands.length > 0 && (
-              <div className="absolute bottom-full left-0 right-0 mb-2 rounded-lg border bg-popover shadow-lg animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2">
-                <div className="p-2 max-h-[280px] overflow-y-auto">
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground/70 px-2 py-1 mb-1">
-                    Available Commands
-                  </div>
-                  {filteredCommands.map((cmd) => {
-                    const Icon = cmd.icon
-                    return (
-                      <button
-                        key={cmd.command}
-                        type="button"
-                        onClick={() => selectCommand(cmd.command)}
-                        className="w-full flex items-start gap-3 px-2 py-2 rounded-md hover:bg-muted/50 transition-colors duration-200 text-left group"
-                      >
-                        <div className="mt-0.5 shrink-0">
-                          <Icon className="h-4 w-4 text-primary transition-all duration-300 group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground">{cmd.command}</p>
-                          <p className="text-xs text-muted-foreground line-clamp-1">{cmd.description}</p>
-                        </div>
-                      </button>
-                    )
-                  })}
                 </div>
               </div>
             )}
 
-            <div className="relative">
-              <Textarea
-                ref={textareaRef}
-                value={input}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                placeholder={
-                  selectedReposCount === 0
-                    ? "Select repositories to start chatting..."
-                    : "Ask anything about your code..."
-                }
-                disabled={isLoading || selectedReposCount === 0}
-                className="min-h-[100px] resize-none pr-2 pb-10"
-              />
+            <form onSubmit={handleSubmit}>
+              <div className="relative">
+                {/* Command Palette */}
+                {showCommands && filteredCommands.length > 0 && (
+                  <div className="absolute bottom-full left-0 right-0 mb-2 rounded-lg border bg-popover shadow-lg animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2">
+                    <div className="p-2 max-h-[280px] overflow-y-auto">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground/70 px-2 py-1 mb-1">
+                        Available Commands
+                      </div>
+                      {filteredCommands.map((cmd) => {
+                        const Icon = cmd.icon
+                        return (
+                          <button
+                            key={cmd.command}
+                            type="button"
+                            onClick={() => selectCommand(cmd.command)}
+                            className="w-full flex items-start gap-3 px-2 py-2 rounded-md hover:bg-muted/50 transition-colors duration-200 text-left group"
+                          >
+                            <div className="mt-0.5 shrink-0">
+                              <Icon className="h-4 w-4 text-primary transition-all duration-300 group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground">{cmd.command}</p>
+                              <p className="text-xs text-muted-foreground line-clamp-1">{cmd.description}</p>
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
 
-              {/* Action Badges - Inside Textarea */}
-              <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
-                <div className="flex items-center gap-1.5 pointer-events-auto">
-                  {/* Attach Files/Repos */}
-                  <button
-                    type="button"
+                <div className="relative">
+                  <Textarea
+                    ref={textareaRef}
+                    value={input}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                    placeholder={
+                      selectedReposCount === 0
+                        ? "Select repositories to start chatting..."
+                        : "Ask anything about your code..."
+                    }
                     disabled={isLoading || selectedReposCount === 0}
-                    className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
-                    title="Attach file or repository"
-                  >
-                    <Paperclip className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
-                    <span className="text-[11px] font-medium">Attach</span>
-                  </button>
+                    className="min-h-[100px] resize-none pr-2 pb-10"
+                  />
 
-                  {/* Quick Commands */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                  {/* Action Badges - Inside Textarea */}
+                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
+                    <div className="flex items-center gap-1.5 pointer-events-auto">
+                      {/* Attach Files/Repos */}
                       <button
                         type="button"
                         disabled={isLoading || selectedReposCount === 0}
                         className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
-                        title="Quick commands"
+                        title="Attach file or repository"
                       >
-                        <Command className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
-                        <span className="text-[11px] font-medium">Commands</span>
+                        <Paperclip className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
+                        <span className="text-[11px] font-medium">Attach</span>
                       </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent side="top" align="start" className="w-64">
-                      <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/70">Quick Commands</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      {availableCommands.slice(0, 4).map((cmd) => {
-                        const Icon = cmd.icon
-                        return (
-                          <DropdownMenuItem
-                            key={cmd.command}
-                            onClick={() => {
-                              setInput(cmd.command + " ")
-                              textareaRef.current?.focus()
-                            }}
-                            className="flex items-center gap-2 cursor-pointer text-xs py-1.5"
+
+                      {/* Quick Commands */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            disabled={isLoading || selectedReposCount === 0}
+                            className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                            title="Quick commands"
                           >
-                            <Icon className="h-3 w-3 text-primary" />
-                            <span>{cmd.command}</span>
-                          </DropdownMenuItem>
-                        )
-                      })}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                            <Command className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
+                            <span className="text-[11px] font-medium">Commands</span>
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent side="top" align="start" className="w-64">
+                          <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/70">Quick Commands</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {availableCommands.slice(0, 4).map((cmd) => {
+                            const Icon = cmd.icon
+                            return (
+                              <DropdownMenuItem
+                                key={cmd.command}
+                                onClick={() => {
+                                  setInput(cmd.command + " ")
+                                  textareaRef.current?.focus()
+                                }}
+                                className="flex items-center gap-2 cursor-pointer text-xs py-1.5"
+                              >
+                                <Icon className="h-3 w-3 text-primary" />
+                                <span>{cmd.command}</span>
+                              </DropdownMenuItem>
+                            )
+                          })}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
 
-                  {/* Voice Input */}
-                  <button
-                    type="button"
-                    disabled={isLoading || selectedReposCount === 0}
-                    className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
-                    title="Voice input"
-                  >
-                    <Mic className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
-                    <span className="text-[11px] font-medium">Voice</span>
-                  </button>
-                </div>
+                      {/* Voice Input */}
+                      <button
+                        type="button"
+                        disabled={isLoading || selectedReposCount === 0}
+                        className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                        title="Voice input"
+                      >
+                        <Mic className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
+                        <span className="text-[11px] font-medium">Voice</span>
+                      </button>
+                    </div>
 
-                {/* Send Button */}
-                <div className="pointer-events-auto">
-                  <Button
-                    type="submit"
-                    size="icon"
-                    disabled={!input.trim() || isLoading || selectedReposCount === 0}
-                    className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
-                    aria-label="Send message"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Send className="h-3 w-3" />
-                    )}
-                  </Button>
+                    {/* Send Button */}
+                    <div className="pointer-events-auto">
+                      <Button
+                        type="submit"
+                        size="icon"
+                        disabled={!input.trim() || isLoading || selectedReposCount === 0}
+                        className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                        aria-label="Send message"
+                      >
+                        {isLoading ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Send className="h-3 w-3" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </form>
           </div>
-
-          {/* Help Text */}
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <kbd className="inline-flex items-center px-1 py-0.5 rounded bg-muted border border-border/50 text-[9px] font-mono font-medium shadow-sm">
-                ↵
-              </kbd>
-              <span>send</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <kbd className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-muted border border-border/50 text-[9px] font-mono font-medium shadow-sm">
-                ⇧↵
-              </kbd>
-              <span>new line</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <kbd className="inline-flex items-center px-1 py-0.5 rounded bg-muted border border-border/50 text-[9px] font-mono font-medium shadow-sm">
-                /
-              </kbd>
-              <span>commands</span>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-function EmptyState({ selectedReposCount }: { selectedReposCount: number }) {
-  return (
-    <div className="flex h-full items-center justify-center">
-      <div className="max-w-md text-center space-y-3">
-        <h2 className="text-2xl font-semibold text-foreground">
-          {selectedReposCount === 0
-            ? "Select Repositories to Start"
-            : "Start a Conversation"}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          {selectedReposCount === 0
-            ? "Choose one or more repositories from the right sidebar to begin chatting with the AI."
-            : "Ask questions about your code, request explanations, or explore your codebase with AI assistance."}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function MessageBubble({ message }: { message: ChatMessage }) {
-  const isUser = message.role === "user"
-
-  return (
-    <div
-      className={cn(
-        "flex gap-3",
-        isUser ? "justify-end" : "justify-start"
-      )}
-    >
-      <div
-        className={cn(
-          "max-w-[80%] space-y-2 rounded-lg p-4",
-          isUser
-            ? "bg-primary text-primary-foreground"
-            : "bg-muted"
-        )}
-      >
-        <div className="prose prose-sm dark:prose-invert">
-          <p className="whitespace-pre-wrap">{message.content}</p>
         </div>
-
-        {/* Code Sources */}
-        {message.sources && message.sources.length > 0 && (
-          <div className="space-y-2 pt-2">
-            <p className="text-xs font-medium opacity-70">Sources:</p>
-            <div className="space-y-2">
-              {message.sources.map((source, idx) => (
-                <CodeSourceCard key={idx} source={source} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        <p className="text-xs opacity-50">
-          {new Date(message.timestamp).toLocaleTimeString()}
-        </p>
-      </div>
+      )}
     </div>
   )
 }
+
+
+// Helper function to get greeting based on time
+function getGreeting() {
+  const hour = new Date().getHours()
+  if (hour < 12) return "Good Morning"
+  if (hour < 18) return "Good Afternoon"
+  return "Good Evening"
+}
+
+// Quick action buttons
+const quickActions = [
+  { icon: Bot, label: "Analyze Repo" },
+  { icon: Search, label: "Search Code" },
+  { icon: Sparkles, label: "Review PR" },
+]
+
 
 function CodeSourceCard({ source }: { source: CodeSource }) {
   return (

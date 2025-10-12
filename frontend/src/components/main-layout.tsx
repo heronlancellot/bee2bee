@@ -12,11 +12,11 @@ interface MainLayoutProps {
 
 export function MainLayout({ children, showHeader = true }: MainLayoutProps) {
   return (
-    <SidebarProvider>
+    <SidebarProvider className="h-full">
       <AppSidebar variant="inset" />
-      <SidebarInset className="rounded-xl border border-border/40 bg-background shadow-sm overflow-hidden">
+      <SidebarInset className="rounded-xl border border-border/40 bg-background shadow-sm overflow-hidden flex flex-col">
         {showHeader && <SiteHeader />}
-        <div className="flex flex-1 flex-col overflow-auto">
+        <div className="flex flex-1 flex-col overflow-hidden min-h-0">
           {children}
         </div>
       </SidebarInset>
