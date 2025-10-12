@@ -393,10 +393,6 @@ export function ChatInterface({
                         </div>
                       </div>
                     )}
-
-                    <p className="text-xs opacity-50 mt-2">
-                      {new Date(message.timestamp).toLocaleTimeString()}
-                    </p>
                   </MessageContent>
                   {message.role === 'user' && (
                     <MessageAvatar
@@ -413,46 +409,6 @@ export function ChatInterface({
 
           {/* Input Area - Bottom when messages exist */}
           <div className="border-t bg-background p-4 relative flex-shrink-0">
-            {/* Smart Suggestions - Floating Above Input */}
-            {!input && selectedReposCount > 0 && (
-              <div className="absolute bottom-full left-0 right-0 mb-3 px-4 z-10 overflow-visible">
-                <div className="flex items-center gap-2 overflow-visible">
-                  <div
-                    ref={suggestionsRef}
-                    className="flex gap-2 overflow-x-auto scrollbar-none flex-1 overflow-y-visible py-1"
-                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                  >
-                    {smartSuggestions.map((suggestion, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => {
-                          setInput(suggestion)
-                          textareaRef.current?.focus()
-                        }}
-                        className="shrink-0 px-3 py-1.5 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 text-xs font-medium text-muted-foreground transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 hover:text-primary hover:shadow-[0_0_4px_hsl(var(--primary)/0.15)]"
-                        style={{
-                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                        }}
-                      >
-                        "{suggestion}"
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={scrollSuggestions}
-                    className="shrink-0 h-7 w-7 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 flex items-center justify-center transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 group"
-                    style={{
-                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                    }}
-                  >
-                    <ChevronRight className="h-3 w-3 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.3)]" />
-                  </button>
-                </div>
-              </div>
-            )}
-
             <form onSubmit={handleSubmit}>
               <div className="relative">
                 {/* Command Palette */}

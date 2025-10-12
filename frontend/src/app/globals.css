@@ -38,6 +38,8 @@
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
     --ring: 142 60% 50%;
+    --message-user: 170 50% 25%;
+    --message-user-foreground: 0 0% 100%;
     --radius: 0.75rem;
     --chart-1: 142 60% 50%;
     --chart-2: 142 55% 45%;
@@ -74,6 +76,8 @@
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
     --ring: 142 76% 36%;
+    --message-user: 170 50% 20%;
+    --message-user-foreground: 0 0% 98%;
     --chart-1: 142 76% 36%;
     --chart-2: 142 72% 31%;
     --chart-3: 142 68% 27%;
