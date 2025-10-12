@@ -5,6 +5,7 @@ import { Send, Loader2, Code2, FileText, ChevronDown, MessageSquare, Bot, Target
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai/conversation"
 import { Message, MessageContent, MessageAvatar } from "@/components/ai/message"
 import { Response } from "@/components/ai/response"
+import { ShimmeringText } from "@/components/ai/shimmering-text"
 import { ChatMessage, CodeSource } from "@/types"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -624,13 +625,16 @@ function CodeSourceCard({ source }: { source: CodeSource }) {
 
 function LoadingMessage() {
   return (
-    <div className="flex justify-start">
-      <div className="max-w-[80%] rounded-lg bg-muted p-4">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <p className="text-sm">AI is thinking...</p>
-        </div>
-      </div>
+    <div className="flex items-center gap-2 px-4">
+      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+      <ShimmeringText
+        text="AI is thinking..."
+        duration={1.2}
+        wave={true}
+        shimmeringColor="hsl(var(--primary))"
+        color="hsl(var(--muted-foreground))"
+        className="text-sm"
+      />
     </div>
   )
 }

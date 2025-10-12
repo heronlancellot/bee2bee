@@ -135,14 +135,21 @@ export const CodeBlockCopyButton = ({
   const Icon = isCopied ? CheckIcon : CopyIcon;
 
   return (
-    <Button
-      className={cn('shrink-0', className)}
+    <button
+      className={cn(
+        'group shrink-0 h-7 w-7 rounded-md bg-background/80 backdrop-blur-sm border border-border/40 shadow-sm transition-all duration-300 hover:bg-background hover:border-primary/30 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)] flex items-center justify-center',
+        className
+      )}
       onClick={copyToClipboard}
-      size="icon"
-      variant="ghost"
       {...props}
     >
-      {children ?? <Icon size={14} />}
-    </Button>
+      <Icon
+        size={14}
+        className={cn(
+          'text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]',
+          isCopied && 'text-primary drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]'
+        )}
+      />
+    </button>
   );
 };
