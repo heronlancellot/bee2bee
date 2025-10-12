@@ -81,11 +81,11 @@ export default function InterestsPage() {
       domains: selectedDomains,
       issueTypes: selectedIssueTypes,
     });
-    router.push("/onboarding/repositories"); // Step 3
+    router.push("/onboarding/analysis"); // Step 3
   };
 
   const handleSkip = () => {
-    router.push("/onboarding/repositories"); // Step 3
+    router.push("/onboarding/analysis"); // Step 3
   };
 
   const handleBack = () => {
