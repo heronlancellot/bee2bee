@@ -1,5 +1,19 @@
 # Supabase Setup
 
+## Prerequisites
+
+Install Supabase CLI:
+
+```bash
+npm install -g supabase
+```
+
+Or use with `npx` (no installation required):
+
+```bash
+npx supabase --version
+```
+
 ## First Time Setup
 
 1. Login to Supabase CLI:
