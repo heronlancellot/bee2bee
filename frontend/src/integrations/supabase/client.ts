@@ -2,8 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-// Toggle between local and remote
-const USE_LOCAL = false; // Set to true to use local Supabase instance
+// Toggle between local and remote via environment variable
+const USE_LOCAL = process.env.NEXT_PUBLIC_USE_LOCAL_SUPABASE === 'true';
 
 // Local Supabase (when running `supabase start`)
 const LOCAL_SUPABASE_URL = "http://127.0.0.1:54321";
@@ -22,7 +22,7 @@ const SUPABASE_ANON_KEY = USE_LOCAL
   : REMOTE_SUPABASE_ANON_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error('Missing Supabase configuration. Check your .env.local file or USE_LOCAL setting.');
+  throw new Error('Missing Supabase configuration. Check your .env.local file.');
 }
 
 // Import the supabase client like this:

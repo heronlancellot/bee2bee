@@ -6,7 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "supabase:link": "cd ../supabase && npx supabase link --project-ref lucnnpamcsduogzplphv",
+    "supabase:pull": "cd ../supabase && npx supabase db pull",
+    "supabase:push": "cd ../supabase && npx supabase db push",
+    "supabase:gen-types": "npx supabase gen types typescript --project-id lucnnpamcsduogzplphv > src/integrations/supabase/types.ts",
+    "supabase:start": "cd ../supabase && npx supabase start",
+    "supabase:stop": "cd ../supabase && npx supabase stop",
+    "supabase:status": "cd ../supabase && npx supabase status",
+    "supabase:migration": "cd ../supabase && npx supabase migration new",
+    "supabase:diff": "cd ../supabase && npx supabase db diff",
+    "supabase:reset": "cd ../supabase && npx supabase db reset"
   },
   "dependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "^1.7.7",
@@ -71,5 +81,6 @@
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5"
-  }
+  },
+  "packageManager": "pnpm@9.12.0+sha512.4abf725084d7bcbafbd728bfc7bee61f2f791f977fd87542b3579dcb23504d170d46337945e4c66485cd12d588a0c0e570ed9c477e7ccdd8507cf05f3f92eaca"
 }
