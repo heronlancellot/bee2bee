@@ -8,6 +8,8 @@ import {
   Settings2,
   Bot,
   Plus,
+  LayoutDashboard,
+  History,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -42,6 +44,11 @@ const data = {
     },
   ],
   navMain: [
+    {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: LayoutDashboard,
+    },
     {
       title: "My Profile",
       url: "/profile",
