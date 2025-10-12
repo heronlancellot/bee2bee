@@ -22,6 +22,11 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -646,27 +651,35 @@ const quickActions = [
 
 
 function CodeSourceCard({ source }: { source: CodeSource }) {
+  const [isOpen, setIsOpen] = React.useState(false)
+
   return (
-    <Card className="bg-background/50">
-      <CardHeader className="p-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Code2 className="h-4 w-4" />
-            <div className="space-y-0.5">
-              <p className="text-sm font-medium">{source.file_path}</p>
-              <p className="text-xs text-muted-foreground">
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <div className="group rounded-md border border-border/40 bg-background/50 hover:bg-background/80 transition-colors duration-200">
+        <CollapsibleTrigger asChild>
+          <button className="w-full flex items-center gap-2 p-2 text-left">
+            <Code2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium truncate">{source.file_path}</p>
+              <p className="text-[10px] text-muted-foreground/70">
                 Lines {source.line_start}-{source.line_end} • {source.repository}
               </p>
             </div>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="p-3 pt-0">
-        <pre className="overflow-x-auto rounded-md bg-muted p-2 text-xs">
-          <code>{source.content}</code>
-        </pre>
-      </CardContent>
-    </Card>
+            <ChevronRight
+              className={cn(
+                "h-3 w-3 text-muted-foreground shrink-0 transition-transform duration-200",
+                isOpen && "rotate-90"
+              )}
+            />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="px-2 pb-2">
+          <pre className="overflow-x-auto rounded-md bg-muted p-2 text-[10px] leading-relaxed">
+            <code>{source.content}</code>
+          </pre>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
   )
 }
 
