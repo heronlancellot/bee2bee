@@ -10,9 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { HexagonBackground } from "@/components/ui/hexagon-background";
 import { OnboardingProgress } from "@/components/onboarding-progress";
 import { ChevronLeft } from "lucide-react";

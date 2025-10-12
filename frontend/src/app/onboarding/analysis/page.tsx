@@ -10,37 +10,24 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { HexagonBackground } from "@/components/ui/hexagon-background";
 import { OnboardingProgress } from "@/components/onboarding-progress";
-import { Check, Loader2, ChevronLeft, Star, GitFork, Users, BookMarked } from "lucide-react";
+import { Check, Loader2, ChevronLeft, Star, BookMarked, Code } from "lucide-react";
 import Image from "next/image";
-import {
-  SiPython,
-  SiJavascript,
-  SiTypescript,
-  SiGo,
-  SiRust,
-  SiJava,
-  SiCplusplus,
-  SiRuby,
-  SiPhp,
-  SiSwift,
-  SiKotlin
-} from "react-icons/si";
+import * as SiIcons from "react-icons/si";
 
 const languageIcons: Record<string, React.ComponentType<{ className?: string }>> = {
-  Python: SiPython,
-  JavaScript: SiJavascript,
-  TypeScript: SiTypescript,
-  Go: SiGo,
-  Rust: SiRust,
-  Java: SiJava,
-  "C++": SiCplusplus,
-  Ruby: SiRuby,
-  PHP: SiPhp,
-  Swift: SiSwift,
-  Kotlin: SiKotlin,
+  Python: SiIcons.SiPython,
+  JavaScript: SiIcons.SiJavascript,
+  TypeScript: SiIcons.SiTypescript,
+  Go: SiIcons.SiGo,
+  Rust: SiIcons.SiRust,
+  Java: Code, // SiJava doesn't exist in react-icons
+  "C++": SiIcons.SiCplusplus,
+  Ruby: SiIcons.SiRuby,
+  PHP: SiIcons.SiPhp,
+  Swift: SiIcons.SiSwift,
+  Kotlin: SiIcons.SiKotlin,
 };
 
 const loadingSteps = [
@@ -218,7 +205,7 @@ export default function AnalysisPage() {
                   <div className="flex gap-1">
                     {mockResults.languages.map((lang) => {
                       const Icon = languageIcons[lang.name];
-                      return Icon ? <Icon key={lang.name} className="h-4 w-4" title={`${lang.name} ${lang.percentage}%`} /> : null;
+                      return Icon ? <Icon key={lang.name} className="h-4 w-4" /> : null;
                     })}
                   </div>
                 </div>
@@ -258,7 +245,7 @@ export default function AnalysisPage() {
                       No repositories found
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Looks like you don't have any public repositories yet
+                      Looks like you don&apos;t have any public repositories yet
                     </p>
                   </div>
                 )}

@@ -67,7 +67,7 @@ export default function OnboardingPage() {
           <CardHeader className="text-center shrink-0">
             <CardTitle className="text-xl md:text-2xl">Welcome, @username! 👋</CardTitle>
             <CardDescription className="text-sm">
-              We're analyzing your GitHub profile right now. While we do that,
+              We&apos;re analyzing your GitHub profile right now. While we do that,
               tell us a bit about yourself.
             </CardDescription>
           </CardHeader>
@@ -106,7 +106,7 @@ export default function OnboardingPage() {
 
             <div className="space-y-3">
               <Label className="text-base font-medium">
-                What's your experience level?
+                What&apos;s your experience level?
               </Label>
               <div className="grid grid-cols-2 gap-2">
                 {experienceLevels.map((level) => (

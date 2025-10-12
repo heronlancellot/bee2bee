@@ -1,5 +1,3 @@
-import { Brain } from "lucide-react";
-
 import { LoginForm } from "@/components/login-form";
 import { HexagonBackground } from "@/components/ui/hexagon-background";
 
