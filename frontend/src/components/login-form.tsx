@@ -1,34 +1,44 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+"use client";
+
+import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  const router = useRouter();
+
+  const handleGitHubLogin = () => {
+    // Simula redirect para GitHub OAuth
+    router.push("/auth/callback");
+  };
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>
-            Login to your RepoMind account
-          </CardDescription>
+          <CardDescription>Login to your RepoMind account</CardDescription>
         </CardHeader>
         <CardContent>
           <form>
             <div className="grid gap-5">
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                  <Label htmlFor="email" className="text-sm font-medium">
+                    Email
+                  </Label>
                   <Input
                     id="email"
                     type="email"
@@ -39,10 +49,12 @@ export function LoginForm({
                 </div>
                 <div className="grid gap-2">
                   <div className="flex items-center">
-                    <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                    <Label htmlFor="password" className="text-sm font-medium">
+                      Password
+                    </Label>
                     <a
                       href="#"
-                      className="ml-auto text-xs underline-offset-4 hover:underline text-muted-foreground hover:text-primary transition-colors"
+                      className="ml-auto text-xs text-muted-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
                     >
                       Forgot password?
                     </a>
@@ -56,7 +68,7 @@ export function LoginForm({
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-black hover:bg-neutral-700 text-white rounded-lg h-10 font-medium transition-all duration-200 hover:shadow-md text-base mt-2"
+                  className="mt-2 h-10 w-full rounded-lg bg-black text-base font-medium text-white transition-all duration-200 hover:bg-neutral-700 hover:shadow-md"
                 >
                   Login
                 </Button>
@@ -68,8 +80,9 @@ export function LoginForm({
               </div>
               <Button
                 variant="outline"
-                className="w-full gap-2.5 text-foreground border-2 border-black/20 hover:bg-black hover:text-primary hover:border-black transition-all duration-300 group rounded-lg h-10 font-medium hover:shadow-lg text-base"
+                className="group h-10 w-full gap-2.5 rounded-lg border-2 border-black/20 text-base font-medium text-foreground transition-all duration-300 hover:border-black hover:bg-black hover:text-primary hover:shadow-lg"
                 type="button"
+                onClick={handleGitHubLogin}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -85,7 +98,10 @@ export function LoginForm({
               </Button>
               <div className="text-center text-sm">
                 Don&apos;t have an account?{" "}
-                <a href="#" className="underline-offset-4 hover:underline text-primary transition-colors">
+                <a
+                  href="#"
+                  className="text-primary underline-offset-4 transition-colors hover:underline"
+                >
                   Sign up
                 </a>
               </div>
@@ -98,5 +114,5 @@ export function LoginForm({
         and <a href="#">Privacy Policy</a>.
       </div>
     </div>
-  )
+  );
 }
