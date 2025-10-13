@@ -46,28 +46,28 @@ async function searchAgentverseAgents(query: string, limit: number, apiKey?: str
   }
 }
 
-// Tool implementation: Get repository context
-async function getRepositoryContext(repoId: string, apiKey?: string) {
+// Tool implementation: Analyze GitHub repository using Repository Analyzer agent
+async function analyzeGitHubRepository(repoId: string, apiKey?: string) {
   if (!apiKey) {
     return { error: 'Agentverse API key not configured' };
   }
 
   try {
-    // Use the Repository Analyzer agent to get real analysis
+    // Use the Repository Analyzer agent (MeTTa AI + uAgents) to get comprehensive analysis
     const result = await analyzeRepository(repoId, apiKey);
 
     if (result.error) {
       return { error: result.error, details: result.details };
     }
 
-    // Return the agent's response
+    // Return the agent's response with full analysis
     return {
       repo_id: repoId,
       agent_address: result.agent_address,
       analysis: result.response
     };
   } catch (error: any) {
-    return { error: 'Failed to fetch repository context', details: error.message };
+    return { error: 'Failed to analyze repository', details: error.message };
   }
 }
 
@@ -118,14 +118,14 @@ export async function POST(request: NextRequest) {
       {
         type: 'function',
         function: {
-          name: 'get_repository_context',
-          description: 'Get context and information about a specific repository',
+          name: 'analyze_github_repository',
+          description: 'Performs comprehensive analysis of a GitHub repository using MeTTa AI reasoning. Returns: repository stats (stars, forks, issues), programming languages breakdown, complexity tier (Simple/Moderate/Complex/Very Complex), difficulty level (Beginner/Intermediate/Advanced/Expert), project type classification (Backend API/Frontend App/Fullstack/ML/Web3), tech domains, file structure analysis, and AI-powered insights about the codebase.',
           parameters: {
             type: 'object',
             properties: {
               repo_id: {
                 type: 'string',
-                description: 'Repository ID'
+                description: 'GitHub repository in format "owner/repo" (e.g., "facebook/react", "vercel/next.js", "openai/gpt-4")'
               }
             },
             required: ['repo_id']
@@ -182,8 +182,8 @@ export async function POST(request: NextRequest) {
           // Execute the appropriate tool
           if (toolName === 'search_agentverse_agents') {
             result = await searchAgentverseAgents(toolArgs.query, toolArgs.limit || 5, agentverseApiKey);
-          } else if (toolName === 'get_repository_context') {
-            result = await getRepositoryContext(toolArgs.repo_id, agentverseApiKey);
+          } else if (toolName === 'analyze_github_repository') {
+            result = await analyzeGitHubRepository(toolArgs.repo_id, agentverseApiKey);
           } else {
             result = { error: 'Unknown tool' };
           }
