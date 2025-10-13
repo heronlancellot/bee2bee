@@ -216,6 +216,7 @@ def analyze_with_metta(repo_data: Dict[str, Any], file_analysis: Dict[str, Any],
         "difficulty_tier": None,
         "project_type": None,
         "tech_domains": [],
+        "documentation": None,
         "reasoning": []
     }
 
@@ -256,6 +257,11 @@ def analyze_with_metta(repo_data: Dict[str, Any], file_analysis: Dict[str, Any],
                 insights["tech_domains"].append(domain)
                 insights["reasoning"].append(f"Tech domain: {lang} → {domain}")
 
+        # Documentation analysis
+        doc_analysis = analyze_documentation(tree)
+        insights["documentation"] = doc_analysis
+        insights["reasoning"].append(f"Documentation: {doc_analysis['rating']} ({doc_analysis['score']}/100 points)")
+
         # Difficulty tier (0-100 score based on complexity)
         complexity_score = min(100, int((estimated_loc / 50000) * 100))
         difficulty_tier = rag.get_difficulty_tier(complexity_score)
@@ -267,6 +273,126 @@ def analyze_with_metta(repo_data: Dict[str, Any], file_analysis: Dict[str, Any],
     except Exception as e:
         print(f"MeTTa analysis error: {e}")
         return insights
+
+
+def analyze_documentation(tree: List[Dict]) -> Dict[str, Any]:
+    """
+    Score documentation quality (0-100).
+
+    Scoring:
+    - README exists and > 1KB: 30 points
+    - LICENSE file exists: 10 points
+    - CONTRIBUTING.md exists: 15 points
+    - CHANGELOG.md exists: 10 points
+    - /docs/ folder exists: 15 points
+    - CODE_OF_CONDUCT.md: 5 points
+    - SECURITY.md: 5 points
+    - .github/ folder (templates): 10 points
+    """
+    score = 0
+    details = {}
+
+    # Helper to find files (case-insensitive)
+    def find_file(pattern: str) -> Dict:
+        pattern_lower = pattern.lower()
+        for item in tree:
+            if item['type'] == 'blob':
+                if item['path'].lower() == pattern_lower or item['path'].lower().endswith(f"/{pattern_lower}"):
+                    return item
+        return None
+
+    # Helper to check folder exists
+    def has_folder(folder_name: str) -> bool:
+        folder_lower = folder_name.lower()
+        for item in tree:
+            if item['type'] == 'tree' or '/' in item.get('path', ''):
+                path_lower = item['path'].lower()
+                if path_lower.startswith(f"{folder_lower}/") or f"/{folder_lower}/" in path_lower:
+                    return True
+        return False
+
+    # README (30 points)
+    readme = find_file('README.md') or find_file('README') or find_file('readme.md')
+    if readme:
+        readme_size = readme.get('size', 0)
+        if readme_size > 1024:  # > 1KB
+            score += 30
+            details['readme'] = {'exists': True, 'size_kb': round(readme_size/1024, 2), 'points': 30}
+        else:
+            score += 10  # Exists but too small
+            details['readme'] = {'exists': True, 'size_kb': round(readme_size/1024, 2), 'points': 10, 'too_small': True}
+    else:
+        details['readme'] = {'exists': False, 'points': 0}
+
+    # LICENSE (10 points)
+    license_file = find_file('LICENSE') or find_file('LICENSE.md') or find_file('license')
+    if license_file:
+        score += 10
+        details['license'] = {'exists': True, 'points': 10}
+    else:
+        details['license'] = {'exists': False, 'points': 0}
+
+    # CONTRIBUTING.md (15 points)
+    contributing = find_file('CONTRIBUTING.md') or find_file('contributing.md')
+    if contributing:
+        score += 15
+        details['contributing'] = {'exists': True, 'points': 15}
+    else:
+        details['contributing'] = {'exists': False, 'points': 0}
+
+    # CHANGELOG.md (10 points)
+    changelog = find_file('CHANGELOG.md') or find_file('changelog.md') or find_file('HISTORY.md')
+    if changelog:
+        score += 10
+        details['changelog'] = {'exists': True, 'points': 10}
+    else:
+        details['changelog'] = {'exists': False, 'points': 0}
+
+    # /docs/ folder (15 points)
+    if has_folder('docs'):
+        score += 15
+        details['docs_folder'] = {'exists': True, 'points': 15}
+    else:
+        details['docs_folder'] = {'exists': False, 'points': 0}
+
+    # CODE_OF_CONDUCT.md (5 points)
+    coc = find_file('CODE_OF_CONDUCT.md') or find_file('code_of_conduct.md')
+    if coc:
+        score += 5
+        details['code_of_conduct'] = {'exists': True, 'points': 5}
+    else:
+        details['code_of_conduct'] = {'exists': False, 'points': 0}
+
+    # SECURITY.md (5 points)
+    security = find_file('SECURITY.md') or find_file('security.md') or find_file('.github/SECURITY.md')
+    if security:
+        score += 5
+        details['security'] = {'exists': True, 'points': 5}
+    else:
+        details['security'] = {'exists': False, 'points': 0}
+
+    # .github/ folder (10 points) - for issue/PR templates
+    if has_folder('.github'):
+        score += 10
+        details['github_folder'] = {'exists': True, 'points': 10}
+    else:
+        details['github_folder'] = {'exists': False, 'points': 0}
+
+    # Rating
+    if score >= 80:
+        rating = "Excellent"
+    elif score >= 60:
+        rating = "Good"
+    elif score >= 40:
+        rating = "Fair"
+    else:
+        rating = "Poor"
+
+    return {
+        'score': score,
+        'rating': rating,
+        'details': details
+    }
 
 
 def format_repo_response(repo_data: Dict[str, Any], file_analysis: Dict[str, Any]) -> str:
@@ -311,6 +437,32 @@ def format_repo_response(repo_data: Dict[str, Any], file_analysis: Dict[str, Any
         response += f"🧠 **Tech Domains:**\n"
         for domain in insights['tech_domains']:
             response += f"- {domain.replace('-', ' ').title()}\n"
+        response += "\n"
+
+    # Documentation score
+    if insights.get('documentation'):
+        doc = insights['documentation']
+        doc_emoji = "📚" if doc['rating'] == "Excellent" else "📖" if doc['rating'] == "Good" else "📝" if doc['rating'] == "Fair" else "📄"
+        response += f"{doc_emoji} **Documentation:** {doc['rating']} ({doc['score']}/100)\n"
+
+        # Show key details
+        details = doc.get('details', {})
+        if details.get('readme', {}).get('exists'):
+            response += f"  ✅ README ({details['readme'].get('size_kb', 0)} KB)\n"
+        else:
+            response += f"  ❌ No README\n"
+
+        if details.get('license', {}).get('exists'):
+            response += f"  ✅ LICENSE\n"
+        else:
+            response += f"  ❌ No LICENSE\n"
+
+        if details.get('contributing', {}).get('exists'):
+            response += f"  ✅ CONTRIBUTING.md\n"
+
+        if details.get('docs_folder', {}).get('exists'):
+            response += f"  ✅ /docs/ folder\n"
+
         response += "\n"
 
     # File structure
