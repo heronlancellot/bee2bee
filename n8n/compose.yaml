@@ -1,0 +1,39 @@
+services:
+  n8n:
+    container_name: n8n-hackaton-2025
+    image: n8nio/n8n:latest
+    env_file:
+      - ./.env
+    environment:
+      - WEBHOOK_URL=https://${NGROK_DOMAIN}
+      - N8N_TRUST_PROXY=private_network
+      - DB_SQLITE_POOL_SIZE=10
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+    networks:
+      - n8n-network
+    volumes:
+      - ./:/home/node/.n8n
+
+  ngrok:
+    container_name: ngrok-hackaton-2025
+    image: ngrok/ngrok:latest
+    env_file:
+      - ./.env
+    command:
+      - "start"
+      - "--all"
+      - "--config"
+      - "/etc/ngrok.yml"
+    networks:
+      - n8n-network
+    volumes:
+      - ./ngrok.yml:/etc/ngrok.yml
+
+volumes:
+  n8n_data:
+
+networks:
+  n8n-network:
+    driver: bridge
