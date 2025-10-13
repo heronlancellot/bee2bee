@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../client';
+import type { UserIdentity } from '@supabase/supabase-js';
 
 export function useLinkIdentity() {
   const [loading, setLoading] = useState(false);
@@ -18,8 +19,8 @@ export function useLinkIdentity() {
       if (linkError) throw linkError;
 
       return { data, error: null };
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to link GitHub account';
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to link GitHub account';
       setError(errorMessage);
       return { data: null, error: errorMessage };
     } finally {
@@ -27,20 +28,18 @@ export function useLinkIdentity() {
     }
   };
 
-  const unlinkIdentity = async (identityId: string) => {
+  const unlinkIdentity = async (identity: UserIdentity) => {
     try {
       setLoading(true);
       setError(null);
 
-      const { data, error: unlinkError } = await supabase.auth.unlinkIdentity({
-        identity_id: identityId,
-      });
+      const { data, error: unlinkError } = await supabase.auth.unlinkIdentity(identity);
 
       if (unlinkError) throw unlinkError;
 
       return { data, error: null };
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to unlink identity';
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to unlink identity';
       setError(errorMessage);
       return { data: null, error: errorMessage };
     } finally {

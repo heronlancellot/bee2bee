@@ -111,73 +111,49 @@ export default function ChatPage() {
     setIsLoading(true)
 
     try {
-      // TODO: Replace with real API call
-      // const response = await fetch('/api/chat', {
-      //   method: 'POST',
-      //   body: JSON.stringify({
-      //     message: content,
-      //     repository_ids: selectedRepos,
-      //   }),
-      // })
+      // Call ASI-1 API via our Next.js API route
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage].map(msg => ({
+            role: msg.role,
+            content: msg.content
+          })),
+          repository_ids: selectedRepos,
+        }),
+      })
 
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`)
+      }
 
-      // Mock AI response with rich markdown
+      const data = await response.json()
+
+      // Add AI response
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: `I found the **authentication logic** in your codebase. Here's what I discovered:
-
-## Overview
-The authentication system uses JWT tokens for user verification. Here are the key components:
-
-### Main Features
-- Token validation with \`jwt.verify()\`
-- Environment-based secret key management
-- Error handling for invalid tokens
-
-### Implementation Details
-\`\`\`typescript
-export async function authenticateUser(token: string) {
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    return decoded
-  } catch (error) {
-    throw new Error('Invalid token')
-  }
-}
-\`\`\`
-
-### Security Considerations
-1. **Secret Management**: Uses environment variables
-2. **Token Expiration**: Automatically handled by JWT
-3. **Error Handling**: Graceful failure on invalid tokens
-
-> **Note:** Make sure to rotate your JWT_SECRET regularly for better security.`,
+        content: data.message,
         timestamp: new Date().toISOString(),
-        sources: [
-          {
-            file_path: "src/auth/index.ts",
-            line_start: 45,
-            line_end: 120,
-            repository: "nectar-frontend",
-            content: `export async function authenticateUser(token: string) {
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    return decoded
-  } catch (error) {
-    throw new Error('Invalid token')
-  }
-}`,
-          },
-        ],
+        // TODO: Add sources when agents return them
+        // sources: data.sources || [],
       }
 
       setMessages((prev) => [...prev, aiMessage])
     } catch (error) {
       console.error("Error sending message:", error)
-      // TODO: Show error toast
+
+      // Add error message to chat
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: "Sorry, I encountered an error processing your request. Please try again.",
+        timestamp: new Date().toISOString(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }
