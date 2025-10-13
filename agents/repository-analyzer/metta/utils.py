@@ -67,6 +67,73 @@ def fetch_github_repo(owner: str, repo: str) -> Dict[str, Any]:
         return {"error": str(e)}
 
 
+def calculate_loc_from_files(tree: List[Dict]) -> int:
+    """
+    Calculate estimated LOC based on file extensions.
+    Uses average LOC per extension similar to Code Index MCP approach.
+    """
+    # Average lines per file type (conservative estimates)
+    avg_loc_by_ext = {
+        'py': 100,       # Python
+        'js': 80,        # JavaScript
+        'ts': 80,        # TypeScript
+        'jsx': 80,       # React
+        'tsx': 80,       # React TypeScript
+        'go': 120,       # Go
+        'rs': 100,       # Rust
+        'java': 150,     # Java
+        'kt': 100,       # Kotlin
+        'swift': 100,    # Swift
+        'cpp': 120,      # C++
+        'cc': 120,       # C++
+        'c': 100,        # C
+        'h': 50,         # Headers
+        'hpp': 50,       # C++ Headers
+        'rb': 90,        # Ruby
+        'php': 100,      # PHP
+        'cs': 120,       # C#
+        'sol': 80,       # Solidity
+        'vy': 80,        # Vyper
+        'sh': 50,        # Shell
+        'bash': 50,      # Bash
+        'yml': 30,       # YAML
+        'yaml': 30,      # YAML
+        'json': 20,      # JSON
+        'xml': 30,       # XML
+        'html': 50,      # HTML
+        'css': 50,       # CSS
+        'scss': 60,      # SCSS
+        'vue': 100,      # Vue
+        'md': 40,        # Markdown
+        'txt': 20,       # Text
+    }
+
+    total_loc = 0
+    code_file_count = 0
+    ext_breakdown = {}
+
+    for item in tree:
+        if item['type'] == 'blob':
+            path = item['path']
+            if '.' in path:
+                ext = path.split('.')[-1].lower()
+                if ext in avg_loc_by_ext:
+                    loc = avg_loc_by_ext[ext]
+                    total_loc += loc
+                    code_file_count += 1
+                    ext_breakdown[ext] = ext_breakdown.get(ext, {'count': 0, 'loc': 0})
+                    ext_breakdown[ext]['count'] += 1
+                    ext_breakdown[ext]['loc'] += loc
+
+    print(f"[DEBUG LOC] Total code files: {code_file_count}")
+    print(f"[DEBUG LOC] Extension breakdown:")
+    for ext, data in sorted(ext_breakdown.items(), key=lambda x: x[1]['loc'], reverse=True):
+        print(f"  - .{ext}: {data['count']} files × {avg_loc_by_ext[ext]} avg = {data['loc']} LOC")
+    print(f"[DEBUG LOC] Total estimated LOC: {total_loc:,}")
+
+    return total_loc
+
+
 def analyze_file_structure(tree: List[Dict]) -> Dict[str, Any]:
     """Analyze repository file structure to detect patterns."""
     try:
@@ -153,13 +220,18 @@ def analyze_with_metta(repo_data: Dict[str, Any], file_analysis: Dict[str, Any],
     }
 
     try:
-        # Calculate total LOC estimate (GitHub size is in KB, rough estimate)
-        estimated_loc = repo_data.get('size', 0) * 10  # Rough: 1 KB ~ 10 LOC
+        # Calculate LOC using file-based estimation
+        tree = repo_data.get('tree', [])
+        estimated_loc = calculate_loc_from_files(tree)
+
+        # Fallback to old method if no tree data
+        if estimated_loc == 0:
+            estimated_loc = repo_data.get('size', 0) * 10
 
         # Complexity tier
         complexity_tier = rag.get_complexity_tier(estimated_loc)
         insights["complexity_tier"] = complexity_tier
-        insights["reasoning"].append(f"Complexity: {complexity_tier} (~{estimated_loc} LOC)")
+        insights["reasoning"].append(f"Complexity: {complexity_tier} (~{estimated_loc:,} LOC)")
 
         # Size category
         file_count = file_analysis.get("file_count", 0)
