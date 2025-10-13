@@ -1,0 +1,13 @@
+
+.env
+ssh/
+
+# n8n runtime data and state
+binaryData/
+config
+database.sqlite*
+nodes/
+git/
+
+# Log files
+*.log
