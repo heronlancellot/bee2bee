@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { analyzeRepository } from '@/lib/agentverse-tools';
 
 export const runtime = 'edge';
 
@@ -46,16 +47,28 @@ async function searchAgentverseAgents(query: string, limit: number, apiKey?: str
 }
 
 // Tool implementation: Get repository context
-async function getRepositoryContext(repoId: string) {
-  // TODO: Implement actual repository context fetching
-  // For now, return mock data
-  return {
-    repo_id: repoId,
-    name: 'Example Repository',
-    description: 'This is a placeholder. Implement actual repo fetching logic.',
-    complexity_score: 65,
-    tech_stack: ['TypeScript', 'React', 'Next.js']
-  };
+async function getRepositoryContext(repoId: string, apiKey?: string) {
+  if (!apiKey) {
+    return { error: 'Agentverse API key not configured' };
+  }
+
+  try {
+    // Use the Repository Analyzer agent to get real analysis
+    const result = await analyzeRepository(repoId, apiKey);
+
+    if (result.error) {
+      return { error: result.error, details: result.details };
+    }
+
+    // Return the agent's response
+    return {
+      repo_id: repoId,
+      agent_address: result.agent_address,
+      analysis: result.response
+    };
+  } catch (error: any) {
+    return { error: 'Failed to fetch repository context', details: error.message };
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -170,7 +183,7 @@ export async function POST(request: NextRequest) {
           if (toolName === 'search_agentverse_agents') {
             result = await searchAgentverseAgents(toolArgs.query, toolArgs.limit || 5, agentverseApiKey);
           } else if (toolName === 'get_repository_context') {
-            result = await getRepositoryContext(toolArgs.repo_id);
+            result = await getRepositoryContext(toolArgs.repo_id, agentverseApiKey);
           } else {
             result = { error: 'Unknown tool' };
           }
