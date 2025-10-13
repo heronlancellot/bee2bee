@@ -9,6 +9,8 @@ from uagents import Context, Model, Protocol
 from typing import Dict, List, Optional
 from metta.utils import fetch_github_repo, analyze_file_structure, analyze_with_metta
 from metta.reporag import RepoRAG
+from metta.knowledge import initialize_knowledge_graph
+from hyperon import MeTTa
 
 
 class RepositoryAnalysisQuery(Model):
@@ -97,8 +99,12 @@ async def handle_repository_analysis(ctx: Context, sender: str, msg: RepositoryA
         tree = repo_data.get('tree', [])
         file_analysis = analyze_file_structure(tree)
 
+        # Initialize MeTTa and load knowledge base
+        metta = MeTTa()
+        initialize_knowledge_graph(metta)
+
         # Analyze with MeTTa
-        rag = RepoRAG()
+        rag = RepoRAG(metta)
         insights = analyze_with_metta(repo_data, file_analysis, rag)
 
         # Extract metrics
