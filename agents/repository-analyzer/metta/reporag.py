@@ -16,19 +16,32 @@ class RepoRAG:
                 return "simple"
 
             # Convert results to list of (tier, threshold) tuples
+            # MeTTa returns: [[expr1, expr2, expr3, ...]] where each expr is (tier threshold)
             thresholds = []
-            for r in results:
-                if r and len(r) > 0:
-                    if len(r) == 1 and hasattr(r[0], 'get_children'):
-                        children = r[0].get_children()
+
+            if results and len(results) > 0:
+                # results[0] is a list of expressions
+                expressions = results[0] if isinstance(results[0], list) else results
+
+                for expr in expressions:
+                    if hasattr(expr, 'get_children'):
+                        children = expr.get_children()
                         if len(children) >= 2:
-                            tier = str(children[0]).strip()
-                            threshold = children[1].get_object().value if hasattr(children[1], 'get_object') else 0
+                            # Extract tier name from first child
+                            tier_atom = children[0]
+                            if hasattr(tier_atom, 'get_name'):
+                                tier = tier_atom.get_name()
+                            else:
+                                tier = str(tier_atom).strip()
+
+                            # Extract threshold value from second child
+                            threshold_atom = children[1]
+                            if hasattr(threshold_atom, 'get_object'):
+                                threshold = threshold_atom.get_object().value
+                            else:
+                                threshold = int(str(threshold_atom))
+
                             thresholds.append((tier, threshold))
-                    else:
-                        tier = str(r[0]).strip()
-                        threshold = r[1].get_object().value if hasattr(r[1], 'get_object') else 0
-                        thresholds.append((tier, threshold))
 
             # Sort by threshold descending
             thresholds.sort(key=lambda x: x[1], reverse=True)
@@ -41,6 +54,8 @@ class RepoRAG:
             return "simple"
         except Exception as e:
             print(f"Error in get_complexity_tier: {e}")
+            import traceback
+            traceback.print_exc()
             return "simple"
 
     def get_repo_size_category(self, file_count: int) -> str:
@@ -53,18 +68,27 @@ class RepoRAG:
                 return "small"
 
             thresholds = []
-            for r in results:
-                if r and len(r) > 0:
-                    if len(r) == 1 and hasattr(r[0], 'get_children'):
-                        children = r[0].get_children()
+
+            if results and len(results) > 0:
+                expressions = results[0] if isinstance(results[0], list) else results
+
+                for expr in expressions:
+                    if hasattr(expr, 'get_children'):
+                        children = expr.get_children()
                         if len(children) >= 2:
-                            category = str(children[0]).strip()
-                            threshold = children[1].get_object().value if hasattr(children[1], 'get_object') else 0
+                            category_atom = children[0]
+                            if hasattr(category_atom, 'get_name'):
+                                category = category_atom.get_name()
+                            else:
+                                category = str(category_atom).strip()
+
+                            threshold_atom = children[1]
+                            if hasattr(threshold_atom, 'get_object'):
+                                threshold = threshold_atom.get_object().value
+                            else:
+                                threshold = int(str(threshold_atom))
+
                             thresholds.append((category, threshold))
-                    else:
-                        category = str(r[0]).strip()
-                        threshold = r[1].get_object().value if hasattr(r[1], 'get_object') else 0
-                        thresholds.append((category, threshold))
 
             thresholds.sort(key=lambda x: x[1], reverse=True)
 
@@ -75,6 +99,8 @@ class RepoRAG:
             return "small"
         except Exception as e:
             print(f"Error in get_repo_size_category: {e}")
+            import traceback
+            traceback.print_exc()
             return "small"
 
     def get_language_domain(self, language: str) -> str:
@@ -101,18 +127,27 @@ class RepoRAG:
                 return "beginner"
 
             thresholds = []
-            for r in results:
-                if r and len(r) > 0:
-                    if len(r) == 1 and hasattr(r[0], 'get_children'):
-                        children = r[0].get_children()
+
+            if results and len(results) > 0:
+                expressions = results[0] if isinstance(results[0], list) else results
+
+                for expr in expressions:
+                    if hasattr(expr, 'get_children'):
+                        children = expr.get_children()
                         if len(children) >= 2:
-                            tier = str(children[0]).strip()
-                            threshold = children[1].get_object().value if hasattr(children[1], 'get_object') else 0
+                            tier_atom = children[0]
+                            if hasattr(tier_atom, 'get_name'):
+                                tier = tier_atom.get_name()
+                            else:
+                                tier = str(tier_atom).strip()
+
+                            threshold_atom = children[1]
+                            if hasattr(threshold_atom, 'get_object'):
+                                threshold = threshold_atom.get_object().value
+                            else:
+                                threshold = int(str(threshold_atom))
+
                             thresholds.append((tier, threshold))
-                    else:
-                        tier = str(r[0]).strip()
-                        threshold = r[1].get_object().value if hasattr(r[1], 'get_object') else 0
-                        thresholds.append((tier, threshold))
 
             thresholds.sort(key=lambda x: x[1], reverse=True)
 
@@ -123,6 +158,8 @@ class RepoRAG:
             return "beginner"
         except Exception as e:
             print(f"Error in get_difficulty_tier: {e}")
+            import traceback
+            traceback.print_exc()
             return "beginner"
 
     def infer_project_type(self, file_structure: Dict[str, bool]) -> str:
