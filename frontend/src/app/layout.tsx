@@ -7,6 +7,12 @@ import { ThemeProvider } from "@/components/theme-provider";
 export const metadata: Metadata = {
   title: "Bee2Bee - AI Companion for Open Source",
   description: "Your intelligent companion for navigating and contributing to open source projects",
+  icons: {
+    icon: [
+      { url: "/branding/gradient_logo_icon.ico" },
+      { url: "/branding/gradient_logo_icon.svg", type: "image/svg+xml" },
+    ],
+  },
 };
 
 export default function RootLayout({
