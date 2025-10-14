@@ -29,7 +29,7 @@ export function LoginForm({
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>Login to your RepoMind account</CardDescription>
+          <CardDescription>Login to your Bee2Bee account</CardDescription>
         </CardHeader>
         <CardContent>
           <form>

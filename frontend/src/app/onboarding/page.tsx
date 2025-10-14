@@ -74,7 +74,7 @@ export default function OnboardingPage() {
           <CardContent className="space-y-6 md:space-y-8 overflow-y-auto flex-1">
             <div className="space-y-4">
               <Label className="text-base font-medium">
-                What brings you to RepoMind?
+                What brings you to Bee2Bee?
               </Label>
               <p className="text-sm text-muted-foreground">
                 Select all that apply

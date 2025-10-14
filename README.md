@@ -1,4 +1,4 @@
-# RepoMind
+# Bee2Bee
 
 > AI-powered codebase analysis and repository intelligence platform for developers
 
@@ -8,7 +8,7 @@
 
 ## Overview
 
-RepoMind is an intelligent platform that helps developers understand, analyze, and interact with their codebases through AI-powered conversations. It provides deep repository insights, code comprehension, and contextual answers by indexing your repositories and leveraging advanced language models.
+Bee2Bee is an intelligent platform that helps developers understand, analyze, and interact with their codebases through AI-powered conversations. It provides deep repository insights, code comprehension, and contextual answers by indexing your repositories and leveraging advanced language models.
 
 ## Key Features
 
@@ -23,7 +23,7 @@ RepoMind is an intelligent platform that helps developers understand, analyze, a
 
 ## Architecture
 
-RepoMind follows a modular monorepo architecture:
+Bee2Bee follows a modular monorepo architecture:
 
 ```
 repomind-ui/
@@ -129,7 +129,7 @@ This project uses pnpm workspaces for efficient dependency management. The `pack
 
 ### Tailwind Configuration
 
-Custom theme extensions for RepoMind branding and shadcn/ui integration can be found in `frontend/tailwind.config.ts`.
+Custom theme extensions for Bee2Bee branding and shadcn/ui integration can be found in `frontend/tailwind.config.ts`.
 
 ## License
 
