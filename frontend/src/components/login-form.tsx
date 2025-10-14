@@ -28,6 +28,13 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <img
+              src="/branding/gradient_logo_light_theme.svg"
+              alt="Bee2Bee"
+              className="h-10 w-auto"
+            />
+          </div>
           <CardTitle className="text-xl">Welcome back</CardTitle>
           <CardDescription>Login to your Bee2Bee account</CardDescription>
         </CardHeader>

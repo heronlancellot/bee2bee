@@ -1,7 +1,7 @@
 "use client"
 
 import { useTheme } from "next-themes"
-import { Search, Inbox, Moon, Sun, Command, X, ChevronRight } from "lucide-react"
+import { Search, Inbox, Moon, Sun, Command, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { SidebarTrigger } from "@/components/ui/sidebar"
@@ -13,25 +13,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useRef, useState } from "react"
-import { usePathname } from "next/navigation"
+import { useRef, useState, useEffect } from "react"
 
 export function SiteHeader() {
-  const { theme, setTheme } = useTheme()
+  const { theme, resolvedTheme, setTheme } = useTheme()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [searchValue, setSearchValue] = useState("")
-  const pathname = usePathname()
+  const [mounted, setMounted] = useState(false)
 
-  // Generate breadcrumb from pathname
-  const getBreadcrumb = () => {
-    if (!pathname) return "Documents"
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
-    const segments = pathname.split('/').filter(Boolean)
-    if (segments.length === 0) return "Documents"
-
-    // Capitalize first letter of each segment
-    return segments.map(seg => seg.charAt(0).toUpperCase() + seg.slice(1)).join(' / ')
-  }
+  const currentTheme = mounted ? (resolvedTheme || theme) : 'light'
+  const logoSrc = currentTheme === 'dark'
+    ? '/branding/gradient_logo_dark_theme_big.svg'
+    : '/branding/gradient_logo_light_theme_big.svg'
 
   const handleThemeToggle = async () => {
     if (!buttonRef.current) return
@@ -82,17 +79,25 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="flex h-12 items-center justify-between bg-background px-3 gap-4 shrink-0 border-b border-border/50">
-      {/* Left Section - Sidebar Toggle + Breadcrumb */}
-      <div className="flex items-center gap-2">
-        <SidebarTrigger className="h-7 w-7 rounded-md transition-all duration-300 hover:bg-transparent [&>svg]:text-muted-foreground [&>svg]:dark:text-primary/60 [&>svg]:hover:text-primary [&>svg]:hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] [&>svg]:dark:hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)] [&>svg]:transition-all [&>svg]:duration-300" />
-        <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
-          <span>{getBreadcrumb()}</span>
-        </div>
+    <header className="flex h-12 items-center bg-background shrink-0 border-b border-border/50 w-full relative z-50">
+      {/* Logo Section - Fixed width matching sidebar */}
+      <div className="flex items-center gap-3 px-4 h-full border-r border-border/50" style={{ width: 'var(--sidebar-width)' }}>
+        <img
+          src={logoSrc}
+          alt="Bee2Bee"
+          className="h-6 w-auto transition-opacity duration-300"
+        />
       </div>
 
-      {/* Right Section - Search + Notifications + Theme */}
-      <div className="flex items-center gap-1.5">
+      {/* Main Header Content */}
+      <div className="flex items-center justify-between flex-1 h-full">
+        {/* Left Section - Sidebar Toggle */}
+        <div className="flex items-center px-3">
+          <SidebarTrigger className="h-7 w-7 rounded-md transition-all duration-300 hover:bg-transparent [&>svg]:text-muted-foreground [&>svg]:dark:text-primary/60 [&>svg]:hover:text-primary [&>svg]:hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] [&>svg]:dark:hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)] [&>svg]:transition-all [&>svg]:duration-300" />
+        </div>
+
+        {/* Right Section - Search + Notifications + Theme */}
+        <div className="flex items-center gap-1.5 px-3">
         {/* Search Bar */}
         <div className="relative group">
           <Search className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground/70 pointer-events-none transition-colors duration-300 group-focus-within:text-primary" />
@@ -164,6 +169,7 @@ export function SiteHeader() {
             <Moon className="absolute inset-0 h-3.5 w-3.5 text-muted-foreground dark:text-primary/60 transition-all duration-500 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)] rotate-90 scale-0 dark:rotate-0 dark:scale-100" />
           </div>
         </Button>
+        </div>
       </div>
     </header>
   )

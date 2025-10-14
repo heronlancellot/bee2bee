@@ -26,8 +26,10 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
+import { useTheme } from "next-themes"
 // import GlareHover from "@/components/GlareHover" // TODO: missing component
 
 const data = {
@@ -94,8 +96,12 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { state } = useSidebar()
+
   return (
     <Sidebar collapsible="icon" {...props}>
+      {/* Spacer for header */}
+      <div className="h-12 shrink-0" />
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
@@ -104,12 +110,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup className="px-2 pt-2 pb-0">
           <SidebarMenu>
             <SidebarMenuItem className="list-none overflow-visible">
-              <Link href="/chat" className="block w-full">
-                <div className="flex items-center gap-2 bg-[hsl(var(--secondary-accent))] hover:bg-[hsl(var(--secondary-accent))]/90 rounded-md px-2 h-8 transition-all duration-300 shadow-sm hover:shadow-md">
-                  <Plus className="h-4 w-4 text-[hsl(var(--secondary-accent-foreground))] flex-shrink-0" />
-                  <span className="text-sm text-[hsl(var(--secondary-accent-foreground))] font-medium">New Chat</span>
-                </div>
-              </Link>
+              <SidebarMenuButton
+                asChild
+                tooltip="New Chat"
+                className="bg-[hsl(var(--secondary-accent))] hover:bg-[hsl(var(--secondary-accent))]/90 text-[hsl(var(--secondary-accent-foreground))] h-8 transition-all duration-300 shadow-sm hover:shadow-md"
+              >
+                <Link href="/chat">
+                  <img
+                    src="/custom-icons/chat_ai_01.svg"
+                    alt="Chat"
+                    className="h-4 w-4 flex-shrink-0 brightness-0 invert"
+                  />
+                  <span className="text-sm font-medium">New Chat</span>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
