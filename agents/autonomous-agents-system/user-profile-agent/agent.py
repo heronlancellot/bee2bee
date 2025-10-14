@@ -14,14 +14,19 @@ from uagents_core.contrib.protocols.chat import (
 import os
 import json
 import sys
+import asyncio
 from datetime import datetime
 from dotenv import load_dotenv
 
 # Add shared knowledge to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from shared.knowledge_base import shared_kb
+from supabase_agent_client import create_supabase_agent_client
 
 load_dotenv()
+
+# Initialize Supabase client
+supabase_client = create_supabase_agent_client()
 
 # Initialize agent
 agent = Agent(
@@ -170,6 +175,16 @@ async def handle_rest_query(ctx: Context, req: ProfileRequest) -> ProfileRespons
 **Experience Level:** {skill_level.title()} ({req.years_experience} years)
 
 🧠 **Insight:** {skill_level.title()} developer with {len(req.skills)} skills"""
+
+    # Store profile pattern in Supabase for RAG
+    asyncio.create_task(supabase_client.store_user_profile_pattern(
+        agent_id=agent.address,
+        user_id=req.user_id,
+        skills=req.skills,
+        years_experience=req.years_experience,
+        skill_level=skill_level,
+        preferences={}
+    ))
 
     return ProfileResponse(
         response=response,

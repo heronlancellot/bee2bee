@@ -13,13 +13,18 @@ from uagents_core.contrib.protocols.chat import (
 import os
 import json
 import sys
+import asyncio
 from datetime import datetime
 from dotenv import load_dotenv
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from shared.knowledge_base import shared_kb
+from supabase_agent_client import create_supabase_agent_client
 
 load_dotenv()
+
+# Initialize Supabase client
+supabase_client = create_supabase_agent_client()
 
 agent = Agent(
     name="Bounty Estimator Agent",
@@ -250,6 +255,18 @@ async def handle_rest_query(ctx: Context, req: BountyEstimateRequest) -> BountyE
         response += f"Good value at ${hourly_rate:.2f}/hour"
     else:
         response += f"Consider negotiating - ${hourly_rate:.2f}/hour is below market"
+
+    # Store bounty estimation pattern in Supabase for RAG
+    asyncio.create_task(supabase_client.store_bounty_estimation_pattern(
+        agent_id=agent.address,
+        complexity_score=req.complexity_score,
+        required_skills=req.required_skills,
+        estimated_hours=req.estimated_hours,
+        estimated_value=estimated_value,
+        hourly_rate=hourly_rate,
+        tier=tier,
+        repo_stars=req.repo_stars
+    ))
 
     return BountyEstimateResponse(
         response=response,

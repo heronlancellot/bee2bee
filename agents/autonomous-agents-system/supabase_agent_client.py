@@ -175,17 +175,84 @@ class SupabaseAgentClient:
         try:
             # Get current count
             result = self.supabase.table('agent_knowledge').select('access_count').eq('id', knowledge_id).execute()
-            
+
             if result.data:
                 current_count = result.data[0]['access_count']
-                
+
                 # Update count
                 self.supabase.table('agent_knowledge').update({
                     'access_count': current_count + 1
                 }).eq('id', knowledge_id).execute()
-                
+
         except Exception as e:
             print(f"Error incrementing access count: {e}")
+
+    async def store_user_profile_pattern(
+        self,
+        agent_id: str,
+        user_id: str,
+        skills: List[str],
+        years_experience: int,
+        skill_level: str,
+        preferences: Dict[str, Any] = None
+    ) -> Optional[str]:
+        """Store user profile pattern as knowledge"""
+
+        semantic_content = f"""
+        User Profile Pattern:
+        User ID: {user_id}
+        Skills: {', '.join(skills)}
+        Experience: {years_experience} years ({skill_level})
+        Preferences: {json.dumps(preferences or {})}
+
+        This profile shows the user's capabilities and helps match them with suitable projects.
+        """
+
+        tags = ['user_profile', 'skills', skill_level] + skills + [user_id]
+
+        return await self.store_agent_knowledge(
+            agent_id=agent_id,
+            topic='user_profiles',
+            content=semantic_content.strip(),
+            tags=tags,
+            confidence=0.9
+        )
+
+    async def store_bounty_estimation_pattern(
+        self,
+        agent_id: str,
+        complexity_score: int,
+        required_skills: List[str],
+        estimated_hours: int,
+        estimated_value: int,
+        hourly_rate: float,
+        tier: str,
+        repo_stars: int = 0
+    ) -> Optional[str]:
+        """Store bounty estimation pattern as knowledge"""
+
+        semantic_content = f"""
+        Bounty Estimation Pattern:
+        Complexity: {complexity_score}/10
+        Required Skills: {', '.join(required_skills)}
+        Estimated Time: {estimated_hours} hours
+        Estimated Value: ${estimated_value}
+        Hourly Rate: ${hourly_rate:.2f}/hour
+        Tier: {tier}
+        Repository Stars: {repo_stars}
+
+        This pattern helps estimate bounty values based on complexity, skills, and market rates.
+        """
+
+        tags = ['bounty_estimation', 'pricing', tier, f'complexity_{complexity_score}'] + required_skills
+
+        return await self.store_agent_knowledge(
+            agent_id=agent_id,
+            topic='bounty_estimation',
+            content=semantic_content.strip(),
+            tags=tags,
+            confidence=0.85
+        )
 
 # Global client instance
 def create_supabase_agent_client() -> SupabaseAgentClient:
