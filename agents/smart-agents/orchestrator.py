@@ -7,12 +7,14 @@ import json
 import uuid
 from typing import Dict, List, Optional, Any
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from intent_classifier import IntentClassifier, IntentType
 from bounty_agents.repo_analyzer import RepoAnalyzer
 from bounty_agents.skill_matcher import SkillMatcher
 from bounty_agents.bounty_estimator import BountyEstimator
 from bounty_agents.user_profile_agent import UserProfileAgent
+from consensus_synthesizer import consensus_synthesizer
 
 
 class SmartAgentsOrchestrator:
@@ -61,10 +63,10 @@ class SmartAgentsOrchestrator:
         intent_result = self.intent_classifier.classify(query)
         intent = intent_result["intent"]
         confidence = intent_result["confidence"]
-        
+
         # Get or create conversation context
         conversation = self._get_conversation_context(conversation_id)
-        
+
         # Add user message to conversation
         conversation["messages"].append({
             "role": "user",
@@ -72,15 +74,26 @@ class SmartAgentsOrchestrator:
             "timestamp": datetime.now().isoformat(),
             "user_id": user_id
         })
-        
-        # Route to appropriate agent
-        agent_response = self._route_to_agent(
-            intent=intent,
-            query=query,
-            user_id=user_id,
-            context=context or {},
-            conversation_history=conversation["messages"][-5:]  # Last 5 messages
-        )
+
+        # Check if this is a complex intent requiring multiple agents
+        if self._requires_consensus_layer(intent):
+            # Use consensus layer (parallel query + synthesis)
+            agent_response = self._process_with_consensus(
+                intent=intent,
+                query=query,
+                user_id=user_id,
+                context=context or {},
+                conversation_history=conversation["messages"][-5:]
+            )
+        else:
+            # Route to appropriate single agent
+            agent_response = self._route_to_agent(
+                intent=intent,
+                query=query,
+                user_id=user_id,
+                context=context or {},
+                conversation_history=conversation["messages"][-5:]  # Last 5 messages
+            )
         
         # Add agent response to conversation
         conversation["messages"].append({
@@ -172,12 +185,202 @@ class SmartAgentsOrchestrator:
     
     def _handle_error_response(self, intent: IntentType, error: str) -> Dict:
         """Handle agent errors gracefully"""
-        
+
         return {
             "response": f"I encountered an issue while processing your {intent.value} request. " +
                        "Please try again or rephrase your question.",
             "agent_id": "orchestrator",
             "metadata": {"error": error, "intent": intent.value}
+        }
+
+    def _requires_consensus_layer(self, intent: IntentType) -> bool:
+        """Check if intent requires consensus layer (multiple agents)"""
+
+        complex_intents = [
+            IntentType.FIND_MATCHES,
+            IntentType.EXPLAIN_REASONING,
+            IntentType.COMPREHENSIVE_ANALYSIS
+        ]
+
+        return intent in complex_intents
+
+    def _process_with_consensus(self, intent: IntentType, query: str, user_id: str,
+                                context: Dict, conversation_history: List[Dict]) -> Dict:
+        """
+        Process query using consensus layer (parallel query + synthesis)
+
+        This is the core of the intelligent multi-agent system:
+        1. Query multiple agents in parallel
+        2. Collect all responses
+        3. Synthesize into a coherent, intelligent response
+        """
+
+        print(f"[Orchestrator] Using CONSENSUS LAYER for intent: {intent.value}")
+
+        # Determine which agents to query based on intent
+        agents_to_query = self._get_agents_for_intent(intent)
+
+        # Query agents in parallel
+        agent_responses = self._query_agents_parallel(
+            agents=agents_to_query,
+            query=query,
+            user_id=user_id,
+            context=context,
+            conversation_history=conversation_history
+        )
+
+        # Synthesize responses based on intent
+        try:
+            if intent == IntentType.FIND_MATCHES:
+                synthesized = consensus_synthesizer.synthesize_find_matches(
+                    query=query,
+                    user_id=user_id,
+                    agent_responses=agent_responses,
+                    conversation_history=conversation_history
+                )
+            elif intent == IntentType.EXPLAIN_REASONING:
+                synthesized = consensus_synthesizer.synthesize_explain_reasoning(
+                    query=query,
+                    user_id=user_id,
+                    agent_responses=agent_responses,
+                    conversation_history=conversation_history,
+                    context=context
+                )
+            elif intent == IntentType.COMPREHENSIVE_ANALYSIS:
+                synthesized = consensus_synthesizer.synthesize_comprehensive_analysis(
+                    query=query,
+                    user_id=user_id,
+                    agent_responses=agent_responses,
+                    conversation_history=conversation_history
+                )
+            else:
+                # Fallback to basic synthesis
+                synthesized = self._basic_synthesis(agent_responses)
+
+            return {
+                "response": synthesized.get("response", "Unable to synthesize response"),
+                "agent_id": "consensus_layer",
+                "metadata": {
+                    "agents_consulted": list(agent_responses.keys()),
+                    "synthesis_metadata": synthesized.get("metadata", {}),
+                    "intent": intent.value
+                }
+            }
+
+        except Exception as e:
+            print(f"[Orchestrator] Error in consensus synthesis: {e}")
+            return self._basic_synthesis(agent_responses)
+
+    def _get_agents_for_intent(self, intent: IntentType) -> List[str]:
+        """Determine which agents to query for a given intent"""
+
+        # Map intents to required agents
+        intent_agent_map = {
+            IntentType.FIND_MATCHES: [
+                IntentType.USER_PROFILE,
+                IntentType.REPO_ANALYSIS,
+                IntentType.SKILL_MATCHING,
+                IntentType.BOUNTY_ESTIMATION
+            ],
+            IntentType.EXPLAIN_REASONING: [
+                IntentType.SKILL_MATCHING,
+                IntentType.USER_PROFILE,
+                IntentType.BOUNTY_ESTIMATION
+            ],
+            IntentType.COMPREHENSIVE_ANALYSIS: [
+                IntentType.REPO_ANALYSIS,
+                IntentType.SKILL_MATCHING,
+                IntentType.BOUNTY_ESTIMATION,
+                IntentType.USER_PROFILE
+            ]
+        }
+
+        return intent_agent_map.get(intent, [])
+
+    def _query_agents_parallel(self, agents: List[IntentType], query: str,
+                              user_id: str, context: Dict,
+                              conversation_history: List[Dict]) -> Dict[str, Dict]:
+        """
+        Query multiple agents in parallel
+
+        Returns:
+            Dict mapping agent_id to agent response
+        """
+
+        agent_responses = {}
+
+        # Use ThreadPoolExecutor for parallel execution
+        with ThreadPoolExecutor(max_workers=len(agents)) as executor:
+            # Submit all agent queries
+            future_to_agent = {}
+
+            for agent_intent in agents:
+                if agent_intent in self.agents:
+                    agent = self.agents[agent_intent]
+
+                    # Submit the agent query
+                    future = executor.submit(
+                        self._safe_agent_call,
+                        agent=agent,
+                        query=query,
+                        user_id=user_id,
+                        context=context,
+                        conversation_history=conversation_history
+                    )
+
+                    future_to_agent[future] = agent.agent_id
+
+            # Collect results as they complete
+            for future in as_completed(future_to_agent):
+                agent_id = future_to_agent[future]
+                try:
+                    response = future.result()
+                    agent_responses[agent_id] = response
+                    print(f"[Orchestrator] ✓ Received response from {agent_id}")
+                except Exception as e:
+                    print(f"[Orchestrator] ✗ Error from {agent_id}: {e}")
+                    agent_responses[agent_id] = {
+                        "response": f"Error from {agent_id}",
+                        "agent_id": agent_id,
+                        "metadata": {"error": str(e)}
+                    }
+
+        return agent_responses
+
+    def _safe_agent_call(self, agent, query: str, user_id: str,
+                        context: Dict, conversation_history: List[Dict]) -> Dict:
+        """Safely call an agent with error handling"""
+
+        try:
+            return agent.process(
+                query=query,
+                user_id=user_id,
+                context=context,
+                conversation_history=conversation_history
+            )
+        except Exception as e:
+            return {
+                "response": f"Error processing query",
+                "agent_id": getattr(agent, 'agent_id', 'unknown'),
+                "metadata": {"error": str(e)}
+            }
+
+    def _basic_synthesis(self, agent_responses: Dict[str, Dict]) -> Dict:
+        """Basic synthesis when consensus layer fails"""
+
+        response_text = "## Multi-Agent Response\n\n"
+
+        for agent_id, agent_response in agent_responses.items():
+            response_text += f"### {agent_id.replace('_', ' ').title()}\n"
+            response_text += f"{agent_response.get('response', 'No response')}\n\n"
+
+        return {
+            "response": response_text,
+            "agent_id": "orchestrator",
+            "metadata": {
+                "agents_consulted": list(agent_responses.keys()),
+                "synthesis_type": "basic"
+            }
         }
     
     def get_conversation(self, conversation_id: str) -> Optional[Dict]:

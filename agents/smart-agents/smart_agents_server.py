@@ -14,7 +14,8 @@ import threading
 # Add the smart-agents directory to Python path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'smart-agents'))
 
-from orchestrator import process_user_query
+# Use new autonomous agents orchestrator
+from orchestrator_autonomous import process_user_query
 
 
 class SmartAgentsHandler(BaseHTTPRequestHandler):
@@ -74,10 +75,10 @@ class SmartAgentsHandler(BaseHTTPRequestHandler):
     def handle_get_capabilities(self):
         """Handle GET requests for agent capabilities"""
         try:
-            from orchestrator import get_orchestrator
-            
-            orchestrator = get_orchestrator()
-            capabilities = orchestrator.get_agent_capabilities()
+            from orchestrator_autonomous import get_bridge
+
+            bridge = get_bridge()
+            capabilities = bridge.get_agent_capabilities()
             
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')

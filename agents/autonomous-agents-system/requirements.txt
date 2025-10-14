@@ -1,0 +1,16 @@
+# Autonomous Agents System - Dependencies
+
+# uAgents Framework
+uagents>=0.12.0
+uagents-core>=0.1.0
+
+# MeTTa (Hyperon) for symbolic reasoning
+hyperon>=0.1.12
+
+# Core utilities
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# Optional: LLM Integration
+# openai>=1.0.0
+# anthropic>=0.8.0

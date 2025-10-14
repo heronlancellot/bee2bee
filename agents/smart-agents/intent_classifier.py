@@ -15,6 +15,12 @@ class IntentType(Enum):
     BOUNTY_ESTIMATION = "bounty_estimation"
     USER_PROFILE = "user_profile"
     GENERAL_CHAT = "general_chat"
+
+    # Complex intents that require multiple agents (Consensus Layer)
+    FIND_MATCHES = "find_matches"  # Find issues/bounties that match user profile
+    EXPLAIN_REASONING = "explain_reasoning"  # Explain why something was recommended
+    COMPREHENSIVE_ANALYSIS = "comprehensive_analysis"  # Full analysis requiring all agents
+
     UNKNOWN = "unknown"
 
 
@@ -50,7 +56,7 @@ class IntentClassifier:
             ],
             IntentType.BOUNTY_ESTIMATION: [
                 r"estimate.*bounty",
-                r"bounty.*estimate", 
+                r"bounty.*estimate",
                 r"how.*much.*worth",
                 r"price.*estimate",
                 r"value.*of",
@@ -79,6 +85,40 @@ class IntentClassifier:
                 r"how.*are.*you",
                 r"thanks",
                 r"thank.*you"
+            ],
+            # Complex intents requiring multiple agents
+            IntentType.FIND_MATCHES: [
+                r"show.*me.*issues",
+                r"find.*issues.*i.*can",
+                r"what.*issues.*can.*i",
+                r"recommend.*issues",
+                r"suggest.*bounties",
+                r"find.*bounties.*for.*me",
+                r"show.*me.*bounties",
+                r"what.*can.*i.*work.*on",
+                r"find.*projects.*for.*me",
+                r"show.*me.*projects",
+                r"issues.*i.*can.*solve",
+                r"bounties.*i.*can.*do"
+            ],
+            IntentType.EXPLAIN_REASONING: [
+                r"why.*this.*match",
+                r"why.*recommend",
+                r"explain.*why",
+                r"how.*did.*you",
+                r"reasoning.*behind",
+                r"why.*is.*this",
+                r"explain.*match",
+                r"why.*perfect",
+                r"tell.*me.*why"
+            ],
+            IntentType.COMPREHENSIVE_ANALYSIS: [
+                r"full.*analysis",
+                r"comprehensive.*analysis",
+                r"analyze.*everything",
+                r"complete.*analysis",
+                r"detailed.*analysis",
+                r"in-depth.*analysis"
             ]
         }
         
@@ -102,6 +142,19 @@ class IntentClassifier:
             ],
             IntentType.GENERAL_CHAT: [
                 "hello", "hi", "help", "thanks", "thank", "how", "what"
+            ],
+            # Complex intents
+            IntentType.FIND_MATCHES: [
+                "show", "find", "issues", "bounties", "projects", "work",
+                "solve", "can", "recommend", "suggest", "perfect"
+            ],
+            IntentType.EXPLAIN_REASONING: [
+                "why", "explain", "reasoning", "how", "match", "recommend",
+                "behind", "perfect", "reason"
+            ],
+            IntentType.COMPREHENSIVE_ANALYSIS: [
+                "full", "comprehensive", "complete", "detailed", "in-depth",
+                "everything", "all", "total"
             ]
         }
     
