@@ -113,15 +113,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 tooltip="New Chat"
-                className="bg-[hsl(var(--secondary-accent))] hover:bg-[hsl(var(--secondary-accent))]/90 text-[hsl(var(--secondary-accent-foreground))] h-8 transition-all duration-300 shadow-sm hover:shadow-md"
+                className="group relative h-8 overflow-hidden bg-[hsl(var(--secondary-accent))] hover:bg-[hsl(var(--secondary-accent))]/80 active:bg-[hsl(var(--secondary-accent))] dark:bg-[hsl(var(--primary))] dark:hover:bg-[hsl(var(--primary))]/90 dark:active:bg-[hsl(var(--primary))] !text-white hover:!text-white active:!text-white transition-all duration-300 shadow-sm hover:shadow-md [&>*]:!text-white [&>*]:hover:!text-white [&>*]:active:!text-white"
               >
-                <Link href="/chat">
+                <Link href="/chat" className="relative !text-white hover:!text-white active:!text-white">
+                  {/* Glare effect */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
+                  </div>
+
                   <img
                     src="/custom-icons/chat_ai_01.svg"
                     alt="Chat"
-                    className="h-4 w-4 flex-shrink-0 brightness-0 invert"
+                    className="h-4 w-4 flex-shrink-0 brightness-0 invert transition-all duration-300 group-hover:scale-110"
                   />
-                  <span className="text-sm font-medium">New Chat</span>
+                  <span className="text-sm font-medium relative z-10 !text-white">New Chat</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

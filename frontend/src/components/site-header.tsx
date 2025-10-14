@@ -4,7 +4,7 @@ import { useTheme } from "next-themes"
 import { Search, Inbox, Moon, Sun, Command, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +17,7 @@ import { useRef, useState, useEffect } from "react"
 
 export function SiteHeader() {
   const { theme, resolvedTheme, setTheme } = useTheme()
+  const { state } = useSidebar()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [searchValue, setSearchValue] = useState("")
   const [mounted, setMounted] = useState(false)
@@ -26,9 +27,11 @@ export function SiteHeader() {
   }, [])
 
   const currentTheme = mounted ? (resolvedTheme || theme) : 'light'
+  const isCollapsed = state === 'collapsed'
+
   const logoSrc = currentTheme === 'dark'
-    ? '/branding/gradient_logo_dark_theme_big.svg'
-    : '/branding/gradient_logo_light_theme_big.svg'
+    ? (isCollapsed ? '/branding/gradient_logo_icon.svg' : '/branding/gradient_logo_dark_theme_big.svg')
+    : (isCollapsed ? '/branding/gradient_logo_icon.svg' : '/branding/gradient_logo_light_theme_big.svg')
 
   const handleThemeToggle = async () => {
     if (!buttonRef.current) return
@@ -81,11 +84,16 @@ export function SiteHeader() {
   return (
     <header className="flex h-12 items-center bg-background shrink-0 border-b border-border/50 w-full relative z-50">
       {/* Logo Section - Fixed width matching sidebar */}
-      <div className="flex items-center gap-3 px-4 h-full border-r border-border/50" style={{ width: 'var(--sidebar-width)' }}>
+      <div
+        className={`flex items-center h-full border-r border-border/50 transition-all duration-200 ease-linear ${isCollapsed ? 'justify-center' : 'px-4'}`}
+        style={{
+          width: isCollapsed ? 'calc(var(--sidebar-width-icon) + 1rem)' : 'var(--sidebar-width)'
+        }}
+      >
         <img
           src={logoSrc}
           alt="Bee2Bee"
-          className="h-6 w-auto transition-opacity duration-300"
+          className={`transition-all duration-200 ${isCollapsed ? 'size-10' : 'h-6 w-auto'}`}
         />
       </div>
 
