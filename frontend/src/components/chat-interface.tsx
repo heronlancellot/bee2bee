@@ -165,7 +165,7 @@ export function ChatInterface({
   }
 
   return (
-    <div className="flex flex-1 flex-col relative overflow-hidden min-h-0">
+    <div className="flex flex-1 flex-col relative overflow-hidden min-h-0 bg-background dark:bg-[hsl(var(--chat-background))]">
       {/* Floating Conversation Selector */}
       <div className="absolute top-3 left-4 z-10">
         <DropdownMenu>
@@ -483,7 +483,7 @@ export function ChatInterface({
           </Conversation>
 
           {/* Input Area - Bottom when messages exist */}
-          <div className="border-t bg-background p-4 relative flex-shrink-0">
+          <div className="border-t bg-background dark:bg-[hsl(var(--header-background))] p-4 relative flex-shrink-0">
             <form onSubmit={handleSubmit}>
               <div className="relative">
                 {/* Command Palette */}
@@ -528,7 +528,7 @@ export function ChatInterface({
                         : "Ask anything about your code..."
                     }
                     disabled={isLoading || selectedReposCount === 0}
-                    className="min-h-[100px] resize-none pr-2 pb-10"
+                    className="min-h-[100px] resize-none pr-2 pb-10 dark:shadow-[0_0_10px_hsl(var(--primary)/0.25)]"
                   />
 
                   {/* Action Badges - Inside Textarea */}
