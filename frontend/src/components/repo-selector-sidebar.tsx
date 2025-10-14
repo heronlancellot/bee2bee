@@ -173,20 +173,20 @@ export function RepoSelectorSidebar({
             <CollapsibleTrigger asChild>
               <Button
                 variant="ghost"
-                className="w-full justify-between px-2 py-1.5 h-auto text-xs font-medium text-sidebar-foreground/70 hover:bg-transparent hover:text-sidebar-foreground"
+                className="group w-full justify-between px-2 py-1.5 h-auto text-xs font-medium text-sidebar-foreground/70 hover:bg-transparent hover:text-sidebar-foreground transition-all duration-300"
                 aria-expanded={showFavorites}
                 aria-controls="favorites-list"
               >
                 <div className="flex items-center gap-1.5">
-                  <Star className="h-3 w-3 fill-primary text-primary" aria-hidden="true" />
-                  <span>FAVORITES</span>
+                  <Star className="h-3 w-3 fill-primary text-primary transition-all duration-300 group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]" aria-hidden="true" />
+                  <span className="transition-all duration-300 group-hover:text-primary dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.3)]">FAVORITES</span>
                   <span className="text-sidebar-foreground/50">
                     {filteredFavorites.length}
                   </span>
                 </div>
                 <ChevronDown
                   className={cn(
-                    "h-3 w-3 transition-transform duration-200",
+                    "h-3 w-3 transition-all duration-300 group-hover:text-primary dark:group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)]",
                     showFavorites && "rotate-180"
                   )}
                   aria-hidden="true"
@@ -213,20 +213,20 @@ export function RepoSelectorSidebar({
             <CollapsibleTrigger asChild>
               <Button
                 variant="ghost"
-                className="w-full justify-between px-2 py-1.5 h-auto text-xs font-medium text-sidebar-foreground/70 hover:bg-transparent hover:text-sidebar-foreground"
+                className="group w-full justify-between px-2 py-1.5 h-auto text-xs font-medium text-sidebar-foreground/70 hover:bg-transparent hover:text-sidebar-foreground transition-all duration-300"
                 aria-expanded={showPrivate}
                 aria-controls="private-list"
               >
                 <div className="flex items-center gap-1.5">
-                  <Lock className="h-3 w-3" aria-hidden="true" />
-                  <span>PRIVATE</span>
+                  <Lock className="h-3 w-3 transition-all duration-300 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]" aria-hidden="true" />
+                  <span className="transition-all duration-300 group-hover:text-primary dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.3)]">PRIVATE</span>
                   <span className="text-sidebar-foreground/50">
                     {filteredPrivate.length}
                   </span>
                 </div>
                 <ChevronDown
                   className={cn(
-                    "h-3 w-3 transition-transform duration-200",
+                    "h-3 w-3 transition-all duration-300 group-hover:text-primary dark:group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)]",
                     showPrivate && "rotate-180"
                   )}
                   aria-hidden="true"
@@ -253,20 +253,20 @@ export function RepoSelectorSidebar({
             <CollapsibleTrigger asChild>
               <Button
                 variant="ghost"
-                className="w-full justify-between px-2 py-1.5 h-auto text-xs font-medium text-sidebar-foreground/70 hover:bg-transparent hover:text-sidebar-foreground"
+                className="group w-full justify-between px-2 py-1.5 h-auto text-xs font-medium text-sidebar-foreground/70 hover:bg-transparent hover:text-sidebar-foreground transition-all duration-300"
                 aria-expanded={showPublic}
                 aria-controls="public-list"
               >
                 <div className="flex items-center gap-1.5">
-                  <Globe className="h-3 w-3" aria-hidden="true" />
-                  <span>PUBLIC</span>
+                  <Globe className="h-3 w-3 transition-all duration-300 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]" aria-hidden="true" />
+                  <span className="transition-all duration-300 group-hover:text-primary dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.3)]">PUBLIC</span>
                   <span className="text-sidebar-foreground/50">
                     {filteredPublic.length}
                   </span>
                 </div>
                 <ChevronDown
                   className={cn(
-                    "h-3 w-3 transition-transform duration-200",
+                    "h-3 w-3 transition-all duration-300 group-hover:text-primary dark:group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)]",
                     showPublic && "rotate-180"
                   )}
                   aria-hidden="true"

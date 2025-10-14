@@ -5,7 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
-  title: "RepoMind - AI Companion for Open Source",
+  title: "Bee2Bee - AI Companion for Open Source",
   description: "Your intelligent companion for navigating and contributing to open source projects",
 };
 

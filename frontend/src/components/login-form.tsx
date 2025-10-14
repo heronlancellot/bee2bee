@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +20,17 @@ export function LoginForm({
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const router = useRouter();
+  const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const currentTheme = mounted ? (resolvedTheme || theme) : 'light';
+  const logoSrc = currentTheme === 'dark'
+    ? '/branding/gradient_logo_dark_theme.svg'
+    : '/branding/gradient_logo_light_theme.svg';
 
   const handleGitHubLogin = () => {
     // Simula redirect para GitHub OAuth
@@ -26,10 +39,17 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
+      <Card className="dark:bg-[hsl(var(--sidebar-background))]">
         <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <img
+              src={logoSrc}
+              alt="Bee2Bee"
+              className="h-10 w-auto transition-opacity duration-300"
+            />
+          </div>
           <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>Login to your RepoMind account</CardDescription>
+          <CardDescription>Login to your Bee2Bee account</CardDescription>
         </CardHeader>
         <CardContent>
           <form>
@@ -74,20 +94,20 @@ export function LoginForm({
                 </Button>
               </div>
               <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
-                <span className="relative z-10 bg-background px-2 text-muted-foreground">
+                <span className="relative z-10 bg-background dark:bg-[hsl(var(--sidebar-background))] px-2 text-muted-foreground">
                   Or continue with
                 </span>
               </div>
               <Button
                 variant="outline"
-                className="group h-10 w-full gap-2.5 rounded-lg border-2 border-border text-base font-medium text-[hsl(var(--secondary-accent))] transition-all duration-300 hover:border-[hsl(var(--secondary-accent))] hover:bg-[hsl(var(--secondary-accent))] hover:text-[hsl(var(--secondary-accent-foreground))] hover:shadow-lg"
+                className="group h-10 w-full gap-2.5 rounded-lg border-2 border-border text-base font-medium text-[hsl(var(--secondary-accent))] dark:bg-white dark:text-[hsl(var(--secondary-accent))] transition-all duration-300 hover:border-[hsl(var(--secondary-accent))] hover:!bg-[hsl(var(--secondary-accent))] hover:!text-white hover:shadow-lg"
                 type="button"
                 onClick={handleGitHubLogin}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
-                  className="h-[18px] w-[18px] text-[hsl(var(--secondary-accent))] transition-all duration-300 group-hover:text-[hsl(var(--secondary-accent-foreground))]"
+                  className="h-[18px] w-[18px] text-[hsl(var(--secondary-accent))] transition-all duration-300 group-hover:!text-white"
                 >
                   <path
                     fill="currentColor"
