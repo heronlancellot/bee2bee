@@ -15,15 +15,9 @@ from urllib.parse import urlparse
 # Add paths
 sys.path.append(os.path.dirname(__file__))
 
-# Import the orchestrator
-from orchestrator import MultiAgentOrchestrator
-
 
 class AutonomousAgentsHandler(BaseHTTPRequestHandler):
     """HTTP Handler for autonomous agents"""
-
-    # Shared orchestrator instance
-    orchestrator = MultiAgentOrchestrator()
 
     def _set_cors_headers(self):
         """Set CORS headers"""
@@ -138,13 +132,34 @@ class AutonomousAgentsHandler(BaseHTTPRequestHandler):
             self.send_error(500, f"Error: {str(e)}")
 
     def detect_intent(self, message: str) -> str:
-        """Detect user intent"""
+        """Detect user intent with improved keyword matching"""
         message_lower = message.lower()
 
-        if any(word in message_lower for word in ["show", "find", "get", "issues", "bounties", "python", "javascript", "match"]):
+        # Keywords for FIND_MATCHES intent
+        find_keywords = [
+            "show", "find", "get", "search", "look", "fetch",
+            "issues", "bounties", "bounty", "tasks", "projects",
+            "python", "javascript", "typescript", "react", "node",
+            "rust", "go", "java", "ruby", "php", "swift", "kotlin",
+            "match", "suitable", "recommend", "suggest",
+            "solve", "work on", "contribute"
+        ]
+
+        # Keywords for EXPLAIN_REASONING intent
+        explain_keywords = [
+            "why", "explain", "reasoning", "how", "what",
+            "tell me", "describe", "elaborate"
+        ]
+
+        # Check for FIND_MATCHES intent
+        if any(word in message_lower for word in find_keywords):
             return "FIND_MATCHES"
-        elif any(word in message_lower for word in ["why", "explain", "reasoning"]):
+
+        # Check for EXPLAIN_REASONING intent
+        elif any(word in message_lower for word in explain_keywords):
             return "EXPLAIN_REASONING"
+
+        # Default to general_chat
         else:
             return "general_chat"
 

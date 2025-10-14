@@ -22,6 +22,7 @@ AGENT_ADDRESSES = {
     "user_profile": os.getenv("USER_PROFILE_AGENT_ADDRESS"),
     "skill_matcher": os.getenv("SKILL_MATCHER_AGENT_ADDRESS"),
     "bounty_estimator": os.getenv("BOUNTY_ESTIMATOR_AGENT_ADDRESS"),
+    "knowledge_synthesizer": os.getenv("KNOWLEDGE_SYNTHESIZER_AGENT_ADDRESS"),
 }
 
 # Create orchestrator agent
@@ -66,6 +67,7 @@ async def startup(ctx: Context):
     ctx.logger.info(f"  👤 User Profile:     {AGENT_ADDRESSES['user_profile'][:20]}...")
     ctx.logger.info(f"  🎯 Skill Matcher:    {AGENT_ADDRESSES['skill_matcher'][:20]}...")
     ctx.logger.info(f"  💰 Bounty Estimator: {AGENT_ADDRESSES['bounty_estimator'][:20]}...")
+    ctx.logger.info(f"  🧠 Knowledge Synth:  {AGENT_ADDRESSES['knowledge_synthesizer'][:20]}...")
     ctx.logger.info("="*60)
 
 
@@ -96,6 +98,7 @@ async def query_agents_parallel_http(queries: dict) -> dict:
         "user_profile": "http://localhost:8009",
         "skill_matcher": "http://localhost:8010",
         "bounty_estimator": "http://localhost:8011",
+        "knowledge_synthesizer": "http://localhost:8013",
     }
 
     import aiohttp
@@ -107,17 +110,14 @@ async def query_agents_parallel_http(queries: dict) -> dict:
             return None
 
         try:
-            # Create payload for agent
-            payload = json.dumps(query)
-
             async with aiohttp.ClientSession() as session:
                 # Try direct HTTP endpoint if exists
                 url = f"{endpoint}/api/query"
 
                 async with session.post(
                     url,
-                    json={"query": payload},
-                    timeout=aiohttp.ClientTimeout(total=5)
+                    json=query,  # Send query directly, not wrapped
+                    timeout=aiohttp.ClientTimeout(total=300)
                 ) as response:
                     if response.status == 200:
                         return await response.json()
@@ -126,9 +126,9 @@ async def query_agents_parallel_http(queries: dict) -> dict:
                         return None
 
         except Exception as e:
-            print(f"⚠️  {agent_name}: {str(e)}")
-            # Return mock response for now
-            return create_mock_response(agent_name, query)
+            print(f"❌ ERROR - {agent_name}: {str(e)}")
+            # Return None instead of mock - we want real responses only
+            return None
 
     # Query all in parallel
     tasks = [
@@ -143,65 +143,54 @@ async def query_agents_parallel_http(queries: dict) -> dict:
     agent_names = list(queries.keys())
 
     for i, result in enumerate(results):
+        agent_name = agent_names[i]
         if result:
-            agent_name = agent_names[i]
-            responses[AGENT_ADDRESSES[agent_name]] = str(result)
+            # Extract 'response' field from JSON if it exists
+            if isinstance(result, dict) and 'response' in result:
+                responses[AGENT_ADDRESSES[agent_name]] = result['response']
+            else:
+                responses[AGENT_ADDRESSES[agent_name]] = str(result)
+            print(f"✅ {agent_name}: Response received successfully")
+        else:
+            print(f"⚠️  {agent_name}: No response (agent might be offline)")
 
-    print(f"✅ Received {len(responses)}/3 responses")
+    print(f"\n📊 Summary: Received {len(responses)}/3 agent responses")
+
+    if len(responses) == 0:
+        print(f"❌ CRITICAL: No agents responded! Check if agents are running on ports 8009, 8010, 8011")
 
     return responses
 
 
-def create_mock_response(agent_name: str, query: dict) -> str:
-    """Create mock response when agent not available via HTTP"""
-
-    if agent_name == "user_profile":
-        skills = query.get("skills", [])
-        years = query.get("years_experience", 3)
-        return f"""👤 **User Profile**
-
-**Skills:** {', '.join(skills)}
-**Experience:** {years} years
-**Level:** Advanced
-
-(Mock response - agent running but no HTTP endpoint)"""
-
-    elif agent_name == "skill_matcher":
-        user_skills = query.get("user_skills", [])
-        required = query.get("required_skills", [])
-        matches = [s for s in user_skills if s in required]
-        return f"""🎯 **Skill Match**
-
-**Your Skills:** {', '.join(user_skills)}
-**Required:** {', '.join(required)}
-**Matches:** {len(matches)}/{len(required)}
-**Score:** {int(len(matches)/len(required)*100) if required else 0}%
-
-(Mock response - agent running but no HTTP endpoint)"""
-
-    elif agent_name == "bounty_estimator":
-        complexity = query.get("complexity_score", 5)
-        hours = query.get("estimated_hours", 4)
-        return f"""💰 **Bounty Estimation**
-
-**Complexity:** {complexity}/10
-**Estimated Time:** ~{hours} hours
-**Recommended Value:** $50-$100
-**Hourly Rate:** ~$12.50/hour
-
-(Mock response - agent running but no HTTP endpoint)"""
-
-    return "Response not available"
-
-
 def detect_intent(message: str) -> str:
-    """Detect user intent"""
+    """Detect user intent with improved keyword matching"""
     message_lower = message.lower()
 
-    if any(word in message_lower for word in ["show", "find", "get", "issues", "bounties", "python", "javascript", "match"]):
+    # Keywords for FIND_MATCHES intent
+    find_keywords = [
+        "show", "find", "get", "search", "look", "fetch",
+        "issues", "bounties", "bounty", "tasks", "projects",
+        "python", "javascript", "typescript", "react", "node",
+        "rust", "go", "java", "ruby", "php", "swift", "kotlin",
+        "match", "suitable", "recommend", "suggest",
+        "solve", "work on", "contribute"
+    ]
+
+    # Keywords for EXPLAIN_REASONING intent
+    explain_keywords = [
+        "why", "explain", "reasoning", "how", "what",
+        "tell me", "describe", "elaborate"
+    ]
+
+    # Check for FIND_MATCHES intent
+    if any(word in message_lower for word in find_keywords):
         return "FIND_MATCHES"
-    elif any(word in message_lower for word in ["why", "explain", "reasoning"]):
+
+    # Check for EXPLAIN_REASONING intent
+    elif any(word in message_lower for word in explain_keywords):
         return "EXPLAIN_REASONING"
+
+    # Default to general_chat
     else:
         return "general_chat"
 
@@ -225,6 +214,26 @@ def synthesize_response(agent_responses: dict, user_message: str, intent: str) -
     """Synthesize responses from all agents"""
 
     if intent == "FIND_MATCHES":
+        # Check if we have any responses
+        if not agent_responses or len(agent_responses) == 0:
+            return f"""⚠️ **No Agent Responses**
+
+I couldn't reach any of the specialized agents. Please make sure all agents are running:
+
+1. User Profile Agent (port 8009)
+2. Skill Matcher Agent (port 8010)
+3. Bounty Estimator Agent (port 8011)
+
+Run each agent in a separate terminal:
+```
+cd user-profile-agent && python agent.py
+cd skill-matcher-agent && python agent.py
+cd bounty-estimator-agent && python agent.py
+```
+
+Your query: "{user_message}"
+"""
+
         synthesis = "# 🎯 Perfect Issues for You!\n\n"
         synthesis += "I consulted with my specialized agents:\n"
         synthesis += "- 👤 User Profile Agent\n"
@@ -233,17 +242,37 @@ def synthesize_response(agent_responses: dict, user_message: str, intent: str) -
         synthesis += "---\n\n"
 
         # Add agent responses
+        agents_responded = []
         for agent_address, response in agent_responses.items():
             # Determine which agent
             if AGENT_ADDRESSES["user_profile"] == agent_address:
                 synthesis += "## 👤 User Profile Analysis\n\n"
                 synthesis += f"{response}\n\n"
+                agents_responded.append("user_profile")
             elif AGENT_ADDRESSES["skill_matcher"] == agent_address:
                 synthesis += "## 🎯 Skills Match\n\n"
                 synthesis += f"{response}\n\n"
+                agents_responded.append("skill_matcher")
             elif AGENT_ADDRESSES["bounty_estimator"] == agent_address:
                 synthesis += "## 💰 Bounty Estimation\n\n"
                 synthesis += f"{response}\n\n"
+                agents_responded.append("bounty_estimator")
+
+        # Show warning for agents that didn't respond
+        missing_agents = []
+        if "user_profile" not in agents_responded:
+            missing_agents.append("👤 User Profile Agent (port 8009)")
+        if "skill_matcher" not in agents_responded:
+            missing_agents.append("🎯 Skill Matcher Agent (port 8010)")
+        if "bounty_estimator" not in agents_responded:
+            missing_agents.append("💰 Bounty Estimator Agent (port 8011)")
+
+        if missing_agents:
+            synthesis += "---\n\n"
+            synthesis += "⚠️ **Warning:** Some agents didn't respond:\n"
+            for agent in missing_agents:
+                synthesis += f"  • {agent}\n"
+            synthesis += "\n"
 
         synthesis += "---\n\n"
         synthesis += "**Ready to accept?** 🚀\n"
@@ -295,7 +324,7 @@ async def handle_rest_query(ctx: Context, req: QueryRequest) -> QueryResponse:
             },
             "skill_matcher": {
                 "user_skills": skills,
-                "required_skills": ["Python", "asyncio", "FastAPI"]
+                "required_skills": ["Python", "asyncio", "FastAPI", "React", "JavaScript"]
             },
             "bounty_estimator": {
                 "complexity_score": 6,

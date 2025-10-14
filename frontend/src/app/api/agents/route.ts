@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const conversationId = data.conversation_id;
 
     // Wait a bit for agents to process (agents check every 3 seconds)
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise(resolve => setTimeout(resolve, 100000));
 
     // Get conversation history with responses
     const conversationResponse = await fetch(

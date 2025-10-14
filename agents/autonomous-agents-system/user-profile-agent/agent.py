@@ -4,7 +4,7 @@ User Profile Agent - Autonomous agent for user profile management
 Manages user skills, preferences, history, and provides personalized insights
 """
 
-from uagents import Context, Protocol, Agent
+from uagents import Context, Protocol, Agent, Model
 from uagents_core.contrib.protocols.chat import (
     ChatAcknowledgement,
     ChatMessage,
@@ -135,8 +135,6 @@ agent.include(chat_proto, publish_manifest=True)
 
 
 # REST endpoint for orchestrator
-from uagents import Model
-
 class ProfileRequest(Model):
     user_id: str
     skills: list = []

@@ -3,7 +3,7 @@
 Bounty Estimator Agent - Estimates bounty values using MeTTa reasoning
 """
 
-from uagents import Context, Protocol, Agent
+from uagents import Context, Protocol, Agent, Model
 from uagents_core.contrib.protocols.chat import (
     ChatAcknowledgement,
     ChatMessage,
@@ -160,6 +160,106 @@ async def handle_ack(ctx: Context, sender: str, msg: ChatAcknowledgement):
 
 
 agent.include(chat_proto, publish_manifest=True)
+
+
+# REST endpoint for orchestrator
+class BountyEstimateRequest(Model):
+    complexity_score: int
+    required_skills: list
+    estimated_hours: int
+    repo_stars: int = 500
+
+
+class BountyEstimateResponse(Model):
+    response: str
+    estimated_value: int
+    min_value: int
+    max_value: int
+    hourly_rate: float
+    tier: str
+
+
+@agent.on_rest_post("/api/query", BountyEstimateRequest, BountyEstimateResponse)
+async def handle_rest_query(ctx: Context, req: BountyEstimateRequest) -> BountyEstimateResponse:
+    """REST endpoint for orchestrator to query this agent"""
+
+    ctx.logger.info(f"REST: Estimating bounty - Complexity: {req.complexity_score}, Hours: {req.estimated_hours}")
+
+    # Use shared KB for complexity assessment
+    complexity_level = shared_kb.query_complexity_level(req.complexity_score)
+
+    # Base rates by complexity
+    base_rates = {
+        "trivial": 25,
+        "easy": 50,
+        "moderate": 100,
+        "hard": 200,
+        "very-hard": 400
+    }
+
+    base_value = base_rates.get(complexity_level, 100)
+
+    # Adjust by hours
+    value_by_hours = req.estimated_hours * 10  # $10/hour base
+
+    # Adjust by tech stack (some skills worth more)
+    premium_skills = ["Rust", "Go", "Solidity", "Kotlin", "Swift"]
+    has_premium = any(skill in premium_skills for skill in req.required_skills)
+    tech_multiplier = 1.3 if has_premium else 1.0
+
+    # Adjust by repo popularity
+    pop_multiplier = 1.0
+    if req.repo_stars > 10000:
+        pop_multiplier = 1.5
+    elif req.repo_stars > 1000:
+        pop_multiplier = 1.2
+
+    # Calculate final estimate
+    estimated_value = int(base_value * tech_multiplier * pop_multiplier)
+    min_value = int(estimated_value * 0.8)
+    max_value = int(estimated_value * 1.3)
+
+    # Calculate hourly rate
+    hourly_rate = estimated_value / req.estimated_hours if req.estimated_hours > 0 else 0
+
+    # Get tier
+    tier = _get_bounty_tier(estimated_value)
+
+    response = f"""💰 **Bounty Estimation**
+
+**Complexity:** {complexity_level.title()} ({req.complexity_score}/10)
+**Estimated Time:** ~{req.estimated_hours} hours
+**Repository:** {req.repo_stars} stars
+
+**Estimated Value:** ${min_value} - ${max_value}
+**Recommended:** ${estimated_value}
+**Hourly Rate:** ~${hourly_rate:.2f}/hour
+
+**Breakdown:**
+• Base (complexity): ${base_value}
+• Tech multiplier: {tech_multiplier}x {"(premium skills)" if has_premium else ""}
+• Popularity multiplier: {pop_multiplier}x
+
+**Tier:** {tier}
+
+💡 **Recommendation:**
+"""
+    if hourly_rate >= 15:
+        response += f"Excellent value at ${hourly_rate:.2f}/hour!"
+    elif hourly_rate >= 10:
+        response += f"Good value at ${hourly_rate:.2f}/hour"
+    else:
+        response += f"Consider negotiating - ${hourly_rate:.2f}/hour is below market"
+
+    return BountyEstimateResponse(
+        response=response,
+        estimated_value=estimated_value,
+        min_value=min_value,
+        max_value=max_value,
+        hourly_rate=hourly_rate,
+        tier=tier
+    )
+
 
 if __name__ == "__main__":
     agent.run()
