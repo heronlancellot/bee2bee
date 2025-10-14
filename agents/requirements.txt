@@ -1,0 +1,14 @@
+uagents==0.12.0
+flask==3.0.0
+flask-cors==4.0.0
+flask-sock==0.7.0
+requests==2.31.0
+python-dotenv==1.0.0
+
+# LLM Integrations
+openai>=1.0.0
+anthropic>=0.18.0
+aiohttp>=3.9.0
+
+# Additional dependencies
+asyncio-compat>=0.1.0

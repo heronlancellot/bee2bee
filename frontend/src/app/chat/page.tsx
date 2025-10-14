@@ -111,8 +111,8 @@ export default function ChatPage() {
     setIsLoading(true)
 
     try {
-      // Call ASI-1 API via our Next.js API route
-      const response = await fetch('/api/chat', {
+      // Call Intelligent Agents API via our Next.js API route
+      const response = await fetch('/api/agents', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -122,7 +122,8 @@ export default function ChatPage() {
             role: msg.role,
             content: msg.content
           })),
-          repository_ids: selectedRepos,
+          agents: ['sigmar', 'slaanesh'], // Both intelligent agents
+          context: `Selected repositories: ${selectedRepos.length}`,
         }),
       })
 
@@ -132,7 +133,7 @@ export default function ChatPage() {
 
       const data = await response.json()
 
-      // Add AI response
+      // Add AI response from intelligent agents
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
