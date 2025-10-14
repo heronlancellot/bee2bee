@@ -321,7 +321,7 @@ export function ChatInterface({
                         <button
                           type="button"
                           disabled={isLoading || selectedReposCount === 0}
-                          className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+                          className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
                           title="Attach file or repository"
                         >
                           <Paperclip className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
@@ -334,7 +334,7 @@ export function ChatInterface({
                             <button
                               type="button"
                               disabled={isLoading || selectedReposCount === 0}
-                              className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+                              className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
                               title="Quick commands"
                             >
                               <Command className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
@@ -367,7 +367,7 @@ export function ChatInterface({
                         <button
                           type="button"
                           disabled={isLoading || selectedReposCount === 0}
-                          className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+                          className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
                           title="Voice input"
                         >
                           <Mic className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
@@ -538,7 +538,7 @@ export function ChatInterface({
                       <button
                         type="button"
                         disabled={isLoading || selectedReposCount === 0}
-                        className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_0_6px_hsl(var(--primary)/0.25)]"
+                        className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
                         title="Attach file or repository"
                       >
                         <Paperclip className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
@@ -551,7 +551,7 @@ export function ChatInterface({
                           <button
                             type="button"
                             disabled={isLoading || selectedReposCount === 0}
-                            className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+                            className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
                             title="Quick commands"
                           >
                             <Command className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
@@ -584,7 +584,7 @@ export function ChatInterface({
                       <button
                         type="button"
                         disabled={isLoading || selectedReposCount === 0}
-                        className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                        className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
                         title="Voice input"
                       >
                         <Mic className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />

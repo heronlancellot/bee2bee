@@ -82,10 +82,10 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="flex h-12 items-center bg-background dark:bg-[hsl(var(--header-background))] shrink-0 border-b border-border/50 dark:border-primary/20 w-full relative z-50">
+    <header className="flex h-12 items-center bg-background dark:bg-[hsl(var(--header-background))] shrink-0 border-b border-border/50 dark:border-transparent w-full relative z-50 dark:shadow-[0_1px_0_0_hsl(var(--primary)/0.15),0_1px_8px_-2px_hsl(var(--primary)/0.2)]">
       {/* Logo Section - Fixed width matching sidebar */}
       <div
-        className={`flex items-center h-full border-r border-border/50 dark:border-primary/20 transition-all duration-200 ease-linear ${isCollapsed ? 'justify-center' : 'px-4'}`}
+        className={`flex items-center h-full border-r border-border/50 dark:border-transparent transition-all duration-200 ease-linear dark:shadow-[1px_0_0_0_hsl(var(--primary)/0.15),1px_0_8px_-2px_hsl(var(--primary)/0.2)] ${isCollapsed ? 'justify-center' : 'px-4'}`}
         style={{
           width: isCollapsed ? 'calc(var(--sidebar-width-icon) + 1rem)' : 'var(--sidebar-width)'
         }}
