@@ -1,17 +1,21 @@
 /**
  * Agentverse Agent Tools
  * Functions to interact with deployed agents on Agentverse
+ *
+ * Note: These agents run locally with Mailbox integration (not hosted on Agentverse cloud)
+ * because they require MeTTa (hyperon) which only works on Linux/Mac, not in Agentverse containers.
  */
 
-const GITHUB_PROFILE_AGENT = 'agent1qwxydcn7vpksaw0vs3wuy4h2r6s65dunevll09aje0zjn27s039tknnvrm3';
+// Agent addresses (these are locally running agents connected via Mailbox)
+const REPOSITORY_ANALYZER_AGENT = 'agent1qdk5p9ssk358gppkg9eufxf3ftzf50fttvxppfp5fa3y3qa6ff9asnxe4sa';
 
 /**
- * Analyze a GitHub profile using the GitHub Profile Analyzer agent
+ * Analyze a GitHub repository using the Repository Analyzer agent
  */
-export async function analyzeGitHubProfile(username: string, apiKey: string) {
+export async function analyzeRepository(repoFullName: string, apiKey: string) {
   try {
     // Send message to agent via Agentverse Mailbox API
-    const response = await fetch(`https://agentverse.ai/v1/agents/${GITHUB_PROFILE_AGENT}/messages`, {
+    const response = await fetch(`https://agentverse.ai/v1/agents/${REPOSITORY_ANALYZER_AGENT}/messages`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -19,7 +23,7 @@ export async function analyzeGitHubProfile(username: string, apiKey: string) {
       },
       body: JSON.stringify({
         type: 'text',
-        content: username
+        content: repoFullName // Format: "owner/repo" (e.g., "facebook/react")
       }),
     });
 
@@ -34,13 +38,13 @@ export async function analyzeGitHubProfile(username: string, apiKey: string) {
     const data = await response.json();
     return {
       success: true,
-      agent_address: GITHUB_PROFILE_AGENT,
-      username,
+      agent_address: REPOSITORY_ANALYZER_AGENT,
+      repository: repoFullName,
       response: data
     };
   } catch (error: any) {
     return {
-      error: 'Failed to analyze GitHub profile via agent',
+      error: 'Failed to analyze repository via agent',
       details: error.message
     };
   }
@@ -68,3 +72,15 @@ export async function getAgentStatus(agentAddress: string, apiKey: string) {
     return { error: error.message };
   }
 }
+
+/**
+ * List all available agents
+ */
+export const AGENTS = {
+  REPOSITORY: {
+    address: REPOSITORY_ANALYZER_AGENT,
+    name: 'Repository Analyzer',
+    description: 'Analyzes GitHub repositories for complexity, tech stack, and difficulty using MeTTa reasoning',
+    inputFormat: 'Repository in format "owner/repo" (e.g., "facebook/react")'
+  }
+} as const;

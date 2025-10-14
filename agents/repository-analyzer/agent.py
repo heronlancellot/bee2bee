@@ -16,6 +16,9 @@ from metta.knowledge import initialize_knowledge_graph
 from metta.reporag import RepoRAG
 from metta.utils import fetch_github_repo, analyze_file_structure, analyze_with_metta, format_repo_response
 
+# Import protocols
+from protocols.repository import repository_proto
+
 # Load environment
 load_dotenv()
 
@@ -164,8 +167,9 @@ async def handle_ack(ctx: Context, sender: str, msg: ChatAcknowledgement):
     """Handle acknowledgements."""
     ctx.logger.info(f"Received acknowledgement from {sender}: {msg.ack_type}")
 
-# Register protocol
-agent.include(chat_proto, publish_manifest=True)
+# Register protocols
+agent.include(chat_proto, publish_manifest=True)  # For chat interface (ASI-1, frontend)
+agent.include(repository_proto, publish_manifest=True)  # For inter-agent communication
 
 if __name__ == "__main__":
     agent.run()

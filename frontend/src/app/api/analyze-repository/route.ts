@@ -1,15 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyzeGitHubProfile } from '@/lib/agentverse-tools';
+import { analyzeRepository } from '@/lib/agentverse-tools';
 
 export const runtime = 'edge';
 
 export async function POST(request: NextRequest) {
   try {
-    const { username } = await request.json();
+    const { repository } = await request.json();
 
-    if (!username) {
+    if (!repository) {
       return NextResponse.json(
-        { error: 'Username is required' },
+        { error: 'Repository name is required (format: "owner/repo")' },
+        { status: 400 }
+      );
+    }
+
+    // Validate format
+    if (!repository.includes('/')) {
+      return NextResponse.json(
+        { error: 'Invalid repository format. Use "owner/repo" (e.g., "facebook/react")' },
         { status: 400 }
       );
     }
@@ -23,8 +31,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call the GitHub Profile Analyzer agent
-    const result = await analyzeGitHubProfile(username, apiKey);
+    // Call the Repository Analyzer agent
+    const result = await analyzeRepository(repository, apiKey);
 
     if (result.error) {
       return NextResponse.json(result, { status: 500 });
@@ -33,7 +41,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
 
   } catch (error) {
-    console.error('GitHub analysis error:', error);
+    console.error('Repository analysis error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
