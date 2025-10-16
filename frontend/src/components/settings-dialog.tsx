@@ -98,8 +98,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                         className={cn(
                           "flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm transition-all duration-200",
                           activeSection === item.id
-                            ? "bg-secondary dark:bg-[#1A1A1A] text-foreground shadow-sm font-semibold border border-border/50 dark:border-white/10"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/40 dark:hover:bg-[#151515]"
+                            ? "bg-secondary dark:bg-muted text-foreground shadow-sm font-semibold border border-border/50 dark:border-border"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/40 dark:hover:bg-muted/60"
                         )}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
@@ -149,8 +149,8 @@ function IntegrationsContent() {
         </h3>
         <div className="flex items-center justify-between p-6 rounded-xl border dark:border-white/10 bg-card dark:bg-[hsl(var(--surface-elevated))]/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow duration-200">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#24292e] dark:bg-white border dark:border-white/10 shadow-md">
-              <Github className="h-6 w-6 text-white dark:text-[#24292e]" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#24292e] dark:bg-foreground border dark:border-border shadow-md">
+              <Github className="h-6 w-6 text-primary-foreground dark:text-background" />
             </div>
             <div className="space-y-1">
               <h4 className="font-semibold">GitHub Account</h4>

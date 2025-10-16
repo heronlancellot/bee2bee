@@ -254,10 +254,7 @@ export function ChatInterface({
                             setInput(suggestion)
                             textareaRef.current?.focus()
                           }}
-                          className="shrink-0 px-3 py-1.5 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 text-xs font-medium text-muted-foreground transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 hover:text-primary hover:shadow-[0_0_4px_hsl(var(--primary)/0.15)] dark:shadow-[0_0_8px_hsl(var(--primary)/0.35)] dark:hover:shadow-[0_0_14px_hsl(var(--primary)/0.5)]"
-                          style={{
-                            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                          }}
+                          className="shrink-0 px-3 py-1.5 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 text-xs font-medium text-muted-foreground transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 hover:text-primary hover:shadow-[0_0_4px_hsl(var(--primary)/0.15)] dark:shadow-[0_0_8px_hsl(var(--primary)/0.35)] dark:hover:shadow-[0_0_14px_hsl(var(--primary)/0.5)] shadow-[0_1px_2px_hsl(var(--shadow-sm))]"
                         >
                           "{suggestion}"
                         </button>
@@ -266,10 +263,7 @@ export function ChatInterface({
                     <button
                       type="button"
                       onClick={scrollSuggestions}
-                      className="shrink-0 h-7 w-7 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 flex items-center justify-center transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 group"
-                      style={{
-                        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                      }}
+                      className="shrink-0 h-7 w-7 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 flex items-center justify-center transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 group shadow-[0_1px_2px_hsl(var(--shadow-sm))]"
                     >
                       <ChevronRight className="h-3 w-3 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.3)]" />
                     </button>
@@ -331,7 +325,7 @@ export function ChatInterface({
                         <button
                           type="button"
                           disabled={isLoading || selectedReposCount === 0}
-                          className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+                          className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
                           title="Attach file or repository"
                         >
                           <Paperclip className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
@@ -344,7 +338,7 @@ export function ChatInterface({
                             <button
                               type="button"
                               disabled={isLoading || selectedReposCount === 0}
-                              className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+                              className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
                               title="Quick commands"
                             >
                               <Command className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
@@ -377,7 +371,7 @@ export function ChatInterface({
                         <button
                           type="button"
                           disabled={isLoading || selectedReposCount === 0}
-                          className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+                          className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
                           title="Voice input"
                         >
                           <Mic className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
@@ -391,7 +385,7 @@ export function ChatInterface({
                           type="submit"
                           size="icon"
                           disabled={!input.trim() || isLoading || selectedReposCount === 0}
-                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_1px_3px_hsl(var(--shadow-lg))]"
                           aria-label="Send message"
                         >
                           {isLoading ? (
@@ -548,7 +542,7 @@ export function ChatInterface({
                       <button
                         type="button"
                         disabled={isLoading || selectedReposCount === 0}
-                        className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+                        className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
                         title="Attach file or repository"
                       >
                         <Paperclip className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
@@ -561,7 +555,7 @@ export function ChatInterface({
                           <button
                             type="button"
                             disabled={isLoading || selectedReposCount === 0}
-                            className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+                            className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
                             title="Quick commands"
                           >
                             <Command className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
@@ -594,7 +588,7 @@ export function ChatInterface({
                       <button
                         type="button"
                         disabled={isLoading || selectedReposCount === 0}
-                        className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+                        className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
                         title="Voice input"
                       >
                         <Mic className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
@@ -612,7 +606,7 @@ export function ChatInterface({
                             setIsStreaming(false)
                             console.log('Stop generation')
                           }}
-                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_1px_3px_hsl(var(--shadow-lg))]"
                           aria-label="Stop generating"
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
@@ -624,7 +618,7 @@ export function ChatInterface({
                           type="submit"
                           size="icon"
                           disabled={!input.trim() || selectedReposCount === 0}
-                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_1px_3px_hsl(var(--shadow-lg))]"
                           aria-label="Send message"
                         >
                           <Send className="h-3 w-3" />
