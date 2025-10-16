@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Send, Loader2, Code2, FileText, ChevronDown, MessageSquare, Bot, Target, Search, Users, Sparkles, Zap, Paperclip, Mic, Command, ChevronRight, User, Copy, RotateCw, ThumbsUp, ThumbsDown } from "lucide-react"
+import { Send, Loader2, Code2, ChevronDown, Bot, Target, Search, Users, Sparkles, Zap, Paperclip, Mic, Command, ChevronRight, Copy, RotateCw, ThumbsUp, ThumbsDown, Plus, X, FileText, File } from "lucide-react"
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai/conversation"
 import { Message, MessageContent, MessageAvatar } from "@/components/ai/message"
 import { Response } from "@/components/ai/response"
@@ -83,6 +83,9 @@ export function ChatInterface({
   const suggestionsRef = React.useRef<HTMLDivElement>(null)
   const [streamingText, setStreamingText] = React.useState("")
   const [isStreaming, setIsStreaming] = React.useState(false)
+  const [attachedFiles, setAttachedFiles] = React.useState<File[]>([])
+  const [filePreviews, setFilePreviews] = React.useState<string[]>([])
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   // Check if chat is empty (no messages)
   const isEmpty = messages.length === 0
@@ -149,9 +152,18 @@ export function ChatInterface({
     e.preventDefault()
     if (!input.trim() || isLoading || selectedReposCount === 0) return
 
+    // TODO: Send images along with the message to the AI
+    // For now, just log them
+    if (attachedFiles.length > 0) {
+      console.log('Sending message with images:', attachedFiles)
+    }
+
     onSendMessage(input)
     setInput("")
     setShowCommands(false)
+    // Clear files after sending
+    setAttachedFiles([])
+    setFilePreviews([])
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -164,10 +176,58 @@ export function ChatInterface({
     }
   }
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    const validFiles = files.filter(file =>
+      file.type.startsWith('image/') ||
+      file.type === 'application/pdf' ||
+      file.name.endsWith('.md') ||
+      file.name.endsWith('.markdown')
+    )
+
+    if (validFiles.length > 0) {
+      setAttachedFiles(prev => [...prev, ...validFiles])
+
+      // Create preview URLs or icons
+      validFiles.forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader()
+          reader.onloadend = () => {
+            setFilePreviews(prev => [...prev, reader.result as string])
+          }
+          reader.readAsDataURL(file)
+        } else {
+          // For PDF and MD, use a placeholder icon
+          setFilePreviews(prev => [...prev, `file:${file.name}`])
+        }
+      })
+    }
+  }
+
+  const removeFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index))
+    setFilePreviews(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const handleAttachClick = () => {
+    fileInputRef.current?.click()
+  }
+
   return (
     <div className="flex flex-1 flex-col relative overflow-hidden min-h-0 bg-background dark:bg-[hsl(var(--chat-background))]">
-      {/* Floating Conversation Selector */}
-      <div className="absolute top-3 left-4 z-10">
+      {/* Hidden File Input - Shared by both areas */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,.pdf,.md,.markdown"
+        multiple
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+
+      {/* Top Bar with Conversation Selector and New Chat Button */}
+      <div className="absolute top-3 left-4 right-4 z-10 flex items-center justify-between">
+        {/* Floating Conversation Selector */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="group h-6 flex items-center gap-1.5 px-2 rounded-md bg-background/80 backdrop-blur-sm border border-border/40 shadow-sm transition-all duration-300 hover:bg-background hover:border-primary/30 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)]">
@@ -199,6 +259,15 @@ export function ChatInterface({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* New Chat Button */}
+        <button
+          onClick={() => console.log('New conversation')}
+          className="group h-6 w-6 rounded-md bg-background/80 backdrop-blur-sm border border-border/40 shadow-sm transition-all duration-300 hover:bg-background hover:border-primary/30 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)] flex items-center justify-center"
+          title="Start new conversation"
+        >
+          <Plus className="h-3.5 w-3.5 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
+        </button>
       </div>
 
       {/* Messages Area or Empty State with Centered Chat */}
@@ -244,10 +313,7 @@ export function ChatInterface({
                             setInput(suggestion)
                             textareaRef.current?.focus()
                           }}
-                          className="shrink-0 px-3 py-1.5 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 text-xs font-medium text-muted-foreground transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 hover:text-primary hover:shadow-[0_0_4px_hsl(var(--primary)/0.15)] dark:shadow-[0_0_8px_hsl(var(--primary)/0.35)] dark:hover:shadow-[0_0_14px_hsl(var(--primary)/0.5)]"
-                          style={{
-                            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                          }}
+                          className="shrink-0 px-3 py-1.5 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 text-xs font-medium text-muted-foreground transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 hover:text-primary hover:shadow-[0_0_4px_hsl(var(--primary)/0.15)] dark:shadow-[0_0_8px_hsl(var(--primary)/0.35)] dark:hover:shadow-[0_0_14px_hsl(var(--primary)/0.5)] shadow-[0_1px_2px_hsl(var(--shadow-sm))]"
                         >
                           "{suggestion}"
                         </button>
@@ -256,10 +322,7 @@ export function ChatInterface({
                     <button
                       type="button"
                       onClick={scrollSuggestions}
-                      className="shrink-0 h-7 w-7 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 flex items-center justify-center transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 group"
-                      style={{
-                        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                      }}
+                      className="shrink-0 h-7 w-7 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30 flex items-center justify-center transition-all duration-300 hover:bg-muted/50 hover:border-primary/20 group shadow-[0_1px_2px_hsl(var(--shadow-sm))]"
                     >
                       <ChevronRight className="h-3 w-3 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.3)]" />
                     </button>
@@ -311,8 +374,49 @@ export function ChatInterface({
                           : "Ask anything about your code..."
                       }
                       disabled={isLoading || selectedReposCount === 0}
-                      className="min-h-[100px] resize-none pr-2 pb-10 dark:shadow-[0_0_10px_hsl(var(--primary)/0.25)]"
+                      className={cn(
+                        "min-h-[100px] resize-none pr-2 pb-10 dark:shadow-[0_0_10px_hsl(var(--primary)/0.25)]",
+                        filePreviews.length > 0 && "pt-[60px]"
+                      )}
                     />
+
+                    {/* File Previews - Inside Textarea at Top */}
+                    {filePreviews.length > 0 && (
+                      <div className="absolute top-2 left-2 right-2 flex flex-wrap gap-1.5 pointer-events-auto z-10">
+                        {filePreviews.map((preview, index) => {
+                          const isImage = !preview.startsWith('file:')
+                          const fileName = preview.startsWith('file:') ? preview.substring(5) : ''
+                          const isPDF = fileName.endsWith('.pdf')
+
+                          return (
+                            <div key={index} className="relative group">
+                              {isImage ? (
+                                <img
+                                  src={preview}
+                                  alt={`Attachment ${index + 1}`}
+                                  className="h-12 w-12 object-cover rounded-md border border-border/50"
+                                />
+                              ) : (
+                                <div className="h-12 w-12 flex items-center justify-center rounded-md border border-border/50 bg-muted">
+                                  {isPDF ? (
+                                    <File className="h-6 w-6 text-destructive" />
+                                  ) : (
+                                    <FileText className="h-6 w-6 text-primary" />
+                                  )}
+                                </div>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => removeFile(index)}
+                                className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                              >
+                                <X className="h-2.5 w-2.5" />
+                              </button>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
 
                     {/* Action Badges - Inside Textarea */}
                     <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
@@ -320,12 +424,13 @@ export function ChatInterface({
                         {/* Attach Files/Repos */}
                         <button
                           type="button"
+                          onClick={handleAttachClick}
                           disabled={isLoading || selectedReposCount === 0}
-                          className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
-                          title="Attach file or repository"
+                          className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+                          title="Attach file (image, PDF, or markdown)"
                         >
                           <Paperclip className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
-                          <span className="text-[11px] font-medium">Attach</span>
+                          <span className="text-[11px] font-medium">Attach{attachedFiles.length > 0 && ` (${attachedFiles.length})`}</span>
                         </button>
 
                         {/* Quick Commands */}
@@ -334,7 +439,7 @@ export function ChatInterface({
                             <button
                               type="button"
                               disabled={isLoading || selectedReposCount === 0}
-                              className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+                              className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
                               title="Quick commands"
                             >
                               <Command className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
@@ -367,7 +472,7 @@ export function ChatInterface({
                         <button
                           type="button"
                           disabled={isLoading || selectedReposCount === 0}
-                          className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+                          className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
                           title="Voice input"
                         >
                           <Mic className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
@@ -381,7 +486,7 @@ export function ChatInterface({
                           type="submit"
                           size="icon"
                           disabled={!input.trim() || isLoading || selectedReposCount === 0}
-                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_1px_3px_hsl(var(--shadow-lg))]"
                           aria-label="Send message"
                         >
                           {isLoading ? (
@@ -413,8 +518,8 @@ export function ChatInterface({
                   <Message key={message.id} from={message.role}>
                     {message.role === 'assistant' && (
                       <MessageAvatar
-                        src='/avatars/bot.jpg'
-                        name='AI'
+                        src='/avatars-beezy/beezy_front.webp'
+                        name='Beezy'
                       />
                     )}
                     <div className="flex flex-col max-w-[80%]">
@@ -528,8 +633,49 @@ export function ChatInterface({
                         : "Ask anything about your code..."
                     }
                     disabled={isLoading || selectedReposCount === 0}
-                    className="min-h-[100px] resize-none pr-2 pb-10 dark:shadow-[0_0_10px_hsl(var(--primary)/0.25)]"
+                    className={cn(
+                      "min-h-[100px] resize-none pr-2 pb-10 dark:shadow-[0_0_10px_hsl(var(--primary)/0.25)]",
+                      filePreviews.length > 0 && "pt-[60px]"
+                    )}
                   />
+
+                  {/* File Previews - Inside Textarea at Top */}
+                  {filePreviews.length > 0 && (
+                    <div className="absolute top-2 left-2 right-2 flex flex-wrap gap-1.5 pointer-events-auto z-10">
+                      {filePreviews.map((preview, index) => {
+                        const isImage = !preview.startsWith('file:')
+                        const fileName = preview.startsWith('file:') ? preview.substring(5) : ''
+                        const isPDF = fileName.endsWith('.pdf')
+
+                        return (
+                          <div key={index} className="relative group">
+                            {isImage ? (
+                              <img
+                                src={preview}
+                                alt={`Attachment ${index + 1}`}
+                                className="h-12 w-12 object-cover rounded-md border border-border/50"
+                              />
+                            ) : (
+                              <div className="h-12 w-12 flex items-center justify-center rounded-md border border-border/50 bg-muted">
+                                {isPDF ? (
+                                  <File className="h-6 w-6 text-destructive" />
+                                ) : (
+                                  <FileText className="h-6 w-6 text-primary" />
+                                )}
+                              </div>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removeFile(index)}
+                              className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                            >
+                              <X className="h-2.5 w-2.5" />
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
 
                   {/* Action Badges - Inside Textarea */}
                   <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
@@ -537,12 +683,13 @@ export function ChatInterface({
                       {/* Attach Files/Repos */}
                       <button
                         type="button"
+                        onClick={handleAttachClick}
                         disabled={isLoading || selectedReposCount === 0}
-                        className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
-                        title="Attach file or repository"
+                        className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+                        title="Attach file (image, PDF, or markdown)"
                       >
                         <Paperclip className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
-                        <span className="text-[11px] font-medium">Attach</span>
+                        <span className="text-[11px] font-medium">Attach{attachedFiles.length > 0 && ` (${attachedFiles.length})`}</span>
                       </button>
 
                       {/* Quick Commands */}
@@ -551,7 +698,7 @@ export function ChatInterface({
                           <button
                             type="button"
                             disabled={isLoading || selectedReposCount === 0}
-                            className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+                            className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
                             title="Quick commands"
                           >
                             <Command className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
@@ -584,7 +731,7 @@ export function ChatInterface({
                       <button
                         type="button"
                         disabled={isLoading || selectedReposCount === 0}
-                        className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
+                        className="group flex items-center gap-1 px-2 py-1 rounded-md bg-background dark:bg-[hsl(var(--header-background))] hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_0_6px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.45)]"
                         title="Voice input"
                       >
                         <Mic className="h-3 w-3 dark:text-primary/60 group-hover:text-primary transition-colors duration-200" />
@@ -602,7 +749,7 @@ export function ChatInterface({
                             setIsStreaming(false)
                             console.log('Stop generation')
                           }}
-                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_1px_3px_hsl(var(--shadow-lg))]"
                           aria-label="Stop generating"
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
@@ -614,7 +761,7 @@ export function ChatInterface({
                           type="submit"
                           size="icon"
                           disabled={!input.trim() || selectedReposCount === 0}
-                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                          className="h-7 w-7 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_1px_3px_hsl(var(--shadow-md))] dark:shadow-[0_1px_3px_hsl(var(--shadow-lg))]"
                           aria-label="Send message"
                         >
                           <Send className="h-3 w-3" />

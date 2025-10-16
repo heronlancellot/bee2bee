@@ -56,6 +56,16 @@
     --sidebar-accent-foreground: 142 70% 35%;
     --sidebar-border: 0 0% 89.8%;
     --sidebar-ring: 142 60% 50%;
+    /* Elevated surface - for modals, dialogs, popovers */
+    --surface-elevated: 0 0% 98%;
+    /* Shadow tokens */
+    --shadow-sm: 0 0% 0% / 0.05;
+    --shadow-md: 0 0% 0% / 0.12;
+    --shadow-lg: 0 0% 0% / 0.3;
+    /* Glow effect tokens */
+    --glow-sm: 0 0 4px hsl(var(--primary) / 0.15);
+    --glow-md: 0 0 6px hsl(var(--primary) / 0.3);
+    --glow-lg: 0 0 10px hsl(var(--primary) / 0.45);
   }
 
   .dark {
@@ -97,6 +107,16 @@
     --sidebar-ring: 142 76% 36%;
     --header-background: 0 0% 9%;
     --chat-background: 0 0% 6%;
+    /* Elevated surface - for modals, dialogs, popovers */
+    --surface-elevated: 0 0% 10.2%;
+    /* Shadow tokens */
+    --shadow-sm: 0 0% 0% / 0.05;
+    --shadow-md: 0 0% 0% / 0.12;
+    --shadow-lg: 0 0% 0% / 0.3;
+    /* Glow effect tokens */
+    --glow-sm: 0 0 4px hsl(var(--primary) / 0.15);
+    --glow-md: 0 0 6px hsl(var(--primary) / 0.3);
+    --glow-lg: 0 0 10px hsl(var(--primary) / 0.45);
   }
 }
 

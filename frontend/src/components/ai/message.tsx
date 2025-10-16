@@ -34,7 +34,7 @@ export const MessageContent = ({
     className={cn(
       'flex flex-col gap-2 rounded-lg px-4 py-3 text-sm',
       'group-[.is-user]:bg-[hsl(var(--secondary-accent))] group-[.is-user]:text-[hsl(var(--secondary-accent-foreground))]',
-      'group-[.is-assistant]:bg-muted group-[.is-assistant]:text-foreground',
+      'group-[.is-assistant]:bg-muted group-[.is-assistant]:text-foreground dark:group-[.is-assistant]:bg-secondary',
       className
     )}
     {...props}

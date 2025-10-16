@@ -14,12 +14,10 @@ import {
 
 import { NavMain } from "@/components/nav-main"
 import { NavProjects } from "@/components/nav-projects"
-import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarRail,
   SidebarGroup,
@@ -70,21 +68,6 @@ const data = {
         },
       ],
     },
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings2,
-      items: [
-        {
-          title: "Integrations",
-          url: "/settings/integrations",
-        },
-        {
-          title: "Preferences",
-          url: "/settings/preferences",
-        },
-      ],
-    },
   ],
   projects: [
     {
@@ -102,20 +85,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       {/* Spacer for header */}
       <div className="h-12 shrink-0" />
-      <SidebarHeader>
+
+      {/* Fixed Header Section */}
+      <SidebarHeader className="shrink-0">
         <TeamSwitcher teams={data.teams} />
-      </SidebarHeader>
-      <SidebarContent>
-        {/* New Chat Button */}
-        <SidebarGroup className="px-2 pt-2 pb-0">
+
+        {/* New Chat Button - Fixed */}
+        <SidebarGroup className="px-2 pt-2 pb-2">
           <SidebarMenu>
-            <SidebarMenuItem className="list-none overflow-visible">
+            <SidebarMenuItem className="list-none overflow-visible w-full">
               <SidebarMenuButton
                 asChild
                 tooltip="New Chat"
-                className="group relative h-8 overflow-hidden bg-[hsl(var(--secondary-accent))] hover:bg-[hsl(var(--secondary-accent))]/80 active:bg-[hsl(var(--secondary-accent))] dark:bg-[hsl(var(--primary))] dark:hover:bg-[hsl(var(--primary))]/90 dark:active:bg-[hsl(var(--primary))] !text-white hover:!text-white active:!text-white transition-all duration-300 shadow-sm hover:shadow-md [&>*]:!text-white [&>*]:hover:!text-white [&>*]:active:!text-white"
+                className="group relative h-8 w-full overflow-hidden bg-[hsl(var(--secondary-accent))] hover:bg-[hsl(var(--secondary-accent))]/80 active:bg-[hsl(var(--secondary-accent))] dark:bg-[hsl(var(--primary))] dark:hover:bg-[hsl(var(--primary))]/90 dark:active:bg-[hsl(var(--primary))] !text-white hover:!text-white active:!text-white transition-all duration-300 shadow-sm hover:shadow-md [&>*]:!text-white [&>*]:hover:!text-white [&>*]:active:!text-white"
               >
-                <Link href="/chat" className="relative !text-white hover:!text-white active:!text-white">
+                <Link href="/chat" className="relative w-full !text-white hover:!text-white active:!text-white">
                   {/* Glare effect */}
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
@@ -132,13 +116,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
+      </SidebarHeader>
 
+      {/* Scrollable Content */}
+      <SidebarContent>
         <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
+
       <SidebarRail />
     </Sidebar>
   )

@@ -63,7 +63,7 @@ export default function OnboardingPage() {
       <div className="w-full max-w-2xl relative z-10 flex flex-col gap-4 max-h-full">
         <OnboardingProgress currentStep={0} totalSteps={4} />
 
-        <Card className="flex-1 flex flex-col overflow-hidden">
+        <Card className="flex-1 flex flex-col overflow-hidden dark:bg-[hsl(var(--surface-elevated))]">
           <CardHeader className="text-center shrink-0">
             <CardTitle className="text-xl md:text-2xl">Welcome, @username! 👋</CardTitle>
             <CardDescription className="text-sm">

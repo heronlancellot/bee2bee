@@ -99,7 +99,7 @@ export default function InterestsPage() {
       <div className="w-full max-w-2xl relative z-10 flex flex-col gap-4 max-h-full">
         <OnboardingProgress currentStep={1} totalSteps={4} />
 
-        <Card className="flex-1 flex flex-col overflow-hidden">
+        <Card className="flex-1 flex flex-col overflow-hidden dark:bg-[hsl(var(--surface-elevated))]">
           <CardHeader className="text-center shrink-0">
             <CardTitle className="text-xl md:text-2xl">What are you interested in?</CardTitle>
             <CardDescription className="text-sm">
@@ -127,7 +127,7 @@ export default function InterestsPage() {
                         : "bg-muted/30 backdrop-blur-sm border border-border/30 text-muted-foreground hover:bg-muted/50 hover:border-primary/20 hover:text-primary hover:shadow-[0_0_4px_hsl(var(--primary)/0.15)]"
                     }`}
                     style={{
-                      boxShadow: selectedTechnologies.includes(tech) ? undefined : '0 1px 2px rgba(0, 0, 0, 0.05)'
+                      boxShadow: selectedTechnologies.includes(tech) ? undefined : '0 1px 2px hsl(var(--shadow-sm))'
                     }}
                   >
                     {tech}
@@ -153,7 +153,7 @@ export default function InterestsPage() {
                         : "bg-muted/30 backdrop-blur-sm border border-border/30 text-muted-foreground hover:bg-muted/50 hover:border-primary/20 hover:text-primary hover:shadow-[0_0_4px_hsl(var(--primary)/0.15)]"
                     }`}
                     style={{
-                      boxShadow: selectedDomains.includes(domain) ? undefined : '0 1px 2px rgba(0, 0, 0, 0.05)'
+                      boxShadow: selectedDomains.includes(domain) ? undefined : '0 1px 2px hsl(var(--shadow-sm))'
                     }}
                   >
                     {domain}
@@ -179,7 +179,7 @@ export default function InterestsPage() {
                         : "bg-muted/30 backdrop-blur-sm border border-border/30 text-muted-foreground hover:bg-muted/50 hover:border-primary/20 hover:text-primary hover:shadow-[0_0_4px_hsl(var(--primary)/0.15)]"
                     }`}
                     style={{
-                      boxShadow: selectedIssueTypes.includes(issueType.id) ? undefined : '0 1px 2px rgba(0, 0, 0, 0.05)'
+                      boxShadow: selectedIssueTypes.includes(issueType.id) ? undefined : '0 1px 2px hsl(var(--shadow-sm))'
                     }}
                   >
                     {issueType.label}
