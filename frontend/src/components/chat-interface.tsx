@@ -423,8 +423,8 @@ export function ChatInterface({
                   <Message key={message.id} from={message.role}>
                     {message.role === 'assistant' && (
                       <MessageAvatar
-                        src='/avatars/bot.jpg'
-                        name='AI'
+                        src='/avatars-beezy/beezy_front.webp'
+                        name='Beezy'
                       />
                     )}
                     <div className="flex flex-col max-w-[80%]">
