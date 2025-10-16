@@ -56,6 +56,8 @@
     --sidebar-accent-foreground: 142 70% 35%;
     --sidebar-border: 0 0% 89.8%;
     --sidebar-ring: 142 60% 50%;
+    /* Elevated surface - for modals, dialogs, popovers */
+    --surface-elevated: 0 0% 98%;
   }
 
   .dark {
@@ -97,6 +99,8 @@
     --sidebar-ring: 142 76% 36%;
     --header-background: 0 0% 9%;
     --chat-background: 0 0% 6%;
+    /* Elevated surface - for modals, dialogs, popovers */
+    --surface-elevated: 0 0% 10.2%;
   }
 }
 
