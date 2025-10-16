@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Send, Loader2, Code2, FileText, ChevronDown, MessageSquare, Bot, Target, Search, Users, Sparkles, Zap, Paperclip, Mic, Command, ChevronRight, User, Copy, RotateCw, ThumbsUp, ThumbsDown } from "lucide-react"
+import { Send, Loader2, Code2, FileText, ChevronDown, MessageSquare, Bot, Target, Search, Users, Sparkles, Zap, Paperclip, Mic, Command, ChevronRight, User, Copy, RotateCw, ThumbsUp, ThumbsDown, Plus } from "lucide-react"
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai/conversation"
 import { Message, MessageContent, MessageAvatar } from "@/components/ai/message"
 import { Response } from "@/components/ai/response"
@@ -166,8 +166,9 @@ export function ChatInterface({
 
   return (
     <div className="flex flex-1 flex-col relative overflow-hidden min-h-0 bg-background dark:bg-[hsl(var(--chat-background))]">
-      {/* Floating Conversation Selector */}
-      <div className="absolute top-3 left-4 z-10">
+      {/* Top Bar with Conversation Selector and New Chat Button */}
+      <div className="absolute top-3 left-4 right-4 z-10 flex items-center justify-between">
+        {/* Floating Conversation Selector */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="group h-6 flex items-center gap-1.5 px-2 rounded-md bg-background/80 backdrop-blur-sm border border-border/40 shadow-sm transition-all duration-300 hover:bg-background hover:border-primary/30 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)]">
@@ -199,6 +200,15 @@ export function ChatInterface({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* New Chat Button */}
+        <button
+          onClick={() => console.log('New conversation')}
+          className="group h-6 w-6 rounded-md bg-background/80 backdrop-blur-sm border border-border/40 shadow-sm transition-all duration-300 hover:bg-background hover:border-primary/30 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)] flex items-center justify-center"
+          title="Start new conversation"
+        >
+          <Plus className="h-3.5 w-3.5 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
+        </button>
       </div>
 
       {/* Messages Area or Empty State with Centered Chat */}
