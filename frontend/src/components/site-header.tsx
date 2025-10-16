@@ -1,7 +1,7 @@
 "use client"
 
 import { useTheme } from "next-themes"
-import { Search, Inbox, Moon, Sun, Command, X, Settings } from "lucide-react"
+import { Search, Inbox, Moon, Sun, Command, X, Settings, LogOut } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRef, useState, useEffect } from "react"
 import { SettingsDialog } from "@/components/settings-dialog"
 
@@ -106,7 +107,7 @@ export function SiteHeader() {
           <SidebarTrigger className="h-7 w-7 rounded-md transition-all duration-300 hover:bg-transparent [&>svg]:text-muted-foreground [&>svg]:dark:text-primary/60 [&>svg]:hover:text-primary [&>svg]:hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] [&>svg]:dark:hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)] [&>svg]:transition-all [&>svg]:duration-300" />
         </div>
 
-        {/* Right Section - Search + Notifications + Theme */}
+        {/* Right Section - Search + Notifications + Settings + Theme + User */}
         <div className="flex items-center gap-1.5 px-3">
         {/* Search Bar */}
         <div className="relative group">
@@ -166,16 +167,6 @@ export function SiteHeader() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Settings Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setSettingsOpen(true)}
-          className="h-7 w-7 rounded-md transition-all duration-300 hover:bg-transparent group"
-        >
-          <Settings className="h-3.5 w-3.5 text-muted-foreground dark:text-primary/60 transition-all duration-300 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
-        </Button>
-
         {/* Theme Toggle */}
         <Button
           ref={buttonRef}
@@ -189,6 +180,38 @@ export function SiteHeader() {
             <Moon className="absolute inset-0 h-3.5 w-3.5 text-muted-foreground dark:text-primary/60 transition-all duration-500 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)] rotate-90 scale-0 dark:rotate-0 dark:scale-100" />
           </div>
         </Button>
+
+        {/* User Info Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-2 ml-2 pl-2 border-l border-border/50 dark:border-white/10 cursor-pointer hover:opacity-80 transition-opacity duration-200">
+              <Avatar className="h-6 w-6">
+                <AvatarImage src="/avatars/shadcn.jpg" alt="User" />
+                <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-semibold">JD</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold leading-none">John Doe</span>
+                <span className="text-[10px] text-muted-foreground leading-none mt-0.5">Free Plan</span>
+              </div>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuLabel className="text-xs">Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-xs py-2 cursor-pointer"
+              onClick={() => setSettingsOpen(true)}
+            >
+              <Settings className="h-3.5 w-3.5 mr-2" />
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-xs py-2 cursor-pointer text-destructive focus:text-destructive">
+              <LogOut className="h-3.5 w-3.5 mr-2" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         </div>
       </div>
 
