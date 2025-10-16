@@ -39,4 +39,3 @@ next-env.d.ts
 
 # supabase
 supabase/.*
-bee2bee-indexer/*
