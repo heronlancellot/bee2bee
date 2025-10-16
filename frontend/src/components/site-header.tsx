@@ -1,7 +1,7 @@
 "use client"
 
 import { useTheme } from "next-themes"
-import { Search, Inbox, Moon, Sun, Command, X } from "lucide-react"
+import { Search, Inbox, Moon, Sun, Command, X, Settings } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useRef, useState, useEffect } from "react"
+import { SettingsDialog } from "@/components/settings-dialog"
 
 export function SiteHeader() {
   const { theme, resolvedTheme, setTheme } = useTheme()
@@ -21,6 +22,7 @@ export function SiteHeader() {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [searchValue, setSearchValue] = useState("")
   const [mounted, setMounted] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -164,6 +166,16 @@ export function SiteHeader() {
           </DropdownMenuContent>
         </DropdownMenu>
 
+        {/* Settings Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setSettingsOpen(true)}
+          className="h-7 w-7 rounded-md transition-all duration-300 hover:bg-transparent group"
+        >
+          <Settings className="h-3.5 w-3.5 text-muted-foreground dark:text-primary/60 transition-all duration-300 group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)] dark:group-hover:drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
+        </Button>
+
         {/* Theme Toggle */}
         <Button
           ref={buttonRef}
@@ -179,6 +191,8 @@ export function SiteHeader() {
         </Button>
         </div>
       </div>
+
+      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </header>
   )
 }

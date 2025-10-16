@@ -70,21 +70,6 @@ const data = {
         },
       ],
     },
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings2,
-      items: [
-        {
-          title: "Integrations",
-          url: "/settings/integrations",
-        },
-        {
-          title: "Preferences",
-          url: "/settings/preferences",
-        },
-      ],
-    },
   ],
   projects: [
     {
