@@ -7,10 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -46,6 +66,113 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      repositories: {
+        Row: {
+          branches: string[] | null
+          complexity_score: number | null
+          complexity_tier: string | null
+          created_at: string
+          default_branch: string | null
+          description: string | null
+          difficulty_tier: string | null
+          full_name: string
+          id: number
+          indexed_at: string
+          is_private: boolean
+          language: string | null
+          name: string
+          owner: string
+          project_type: string | null
+          size_category: string | null
+          stars: number
+          tech_domains: string[] | null
+          user_id: string | null
+        }
+        Insert: {
+          branches?: string[] | null
+          complexity_score?: number | null
+          complexity_tier?: string | null
+          created_at?: string
+          default_branch?: string | null
+          description?: string | null
+          difficulty_tier?: string | null
+          full_name: string
+          id: number
+          indexed_at?: string
+          is_private?: boolean
+          language?: string | null
+          name: string
+          owner: string
+          project_type?: string | null
+          size_category?: string | null
+          stars?: number
+          tech_domains?: string[] | null
+          user_id?: string | null
+        }
+        Update: {
+          branches?: string[] | null
+          complexity_score?: number | null
+          complexity_tier?: string | null
+          created_at?: string
+          default_branch?: string | null
+          description?: string | null
+          difficulty_tier?: string | null
+          full_name?: string
+          id?: number
+          indexed_at?: string
+          is_private?: boolean
+          language?: string | null
+          name?: string
+          owner?: string
+          project_type?: string | null
+          size_category?: string | null
+          stars?: number
+          tech_domains?: string[] | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repositories_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_favorite_repositories: {
+        Row: {
+          created_at: string
+          repository_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          repository_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          repository_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorite_repositories_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "repositories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorite_repositories_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -189,7 +316,11 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
 } as const
+
