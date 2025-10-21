@@ -18,3 +18,4 @@ crash.journal
 !workflows/
 !workflows/README.md
 custom/node_modules/*
+link-local-node.sh

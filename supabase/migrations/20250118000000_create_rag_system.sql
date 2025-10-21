@@ -237,7 +237,9 @@ COMMENT ON COLUMN public.code_chunks.file_path IS 'Links to file_metadata via fo
 -- ============================================================
 -- TABLE 5: EMBEDDINGS
 -- ============================================================
--- Stores vector embeddings for semantic search
+-- Stores dual vector embeddings for semantic search
+-- - nlp_embedding: Textified code for natural language queries
+-- - code_embedding: Raw code for code-to-code similarity
 
 CREATE TABLE public.embeddings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -245,8 +247,9 @@ CREATE TABLE public.embeddings (
   -- Relationship
   chunk_id TEXT NOT NULL REFERENCES public.code_chunks(chunk_id) ON DELETE CASCADE,
 
-  -- Vector (OpenAI text-embedding-3-small = 1536 dimensions)
-  embedding VECTOR(1536) NOT NULL,
+  -- Dual Vectors (OpenAI text-embedding-3-small = 1536 dimensions each)
+  nlp_embedding VECTOR(1536) NOT NULL,      -- For "find authentication logic"
+  code_embedding VECTOR(1536) NOT NULL,     -- For "find similar to this code"
 
   -- Metadata
   model_name TEXT DEFAULT 'text-embedding-3-small',
@@ -257,17 +260,24 @@ CREATE TABLE public.embeddings (
 );
 
 -- Indexes for vector similarity search (pgvector 0.7.0 HNSW)
-CREATE INDEX idx_embeddings_hnsw ON public.embeddings
-  USING hnsw (embedding vector_cosine_ops)
+-- Create separate HNSW indexes for NLP and Code embeddings
+CREATE INDEX idx_embeddings_nlp_hnsw ON public.embeddings
+  USING hnsw (nlp_embedding vector_cosine_ops)
+  WITH (m = 16, ef_construction = 64);
+
+CREATE INDEX idx_embeddings_code_hnsw ON public.embeddings
+  USING hnsw (code_embedding vector_cosine_ops)
   WITH (m = 16, ef_construction = 64);
 
 -- Regular index for chunk_id lookups
 CREATE INDEX idx_embeddings_chunk_id ON public.embeddings(chunk_id);
 
 -- Comments
-COMMENT ON TABLE public.embeddings IS 'Vector embeddings for RAG similarity search';
-COMMENT ON COLUMN public.embeddings.embedding IS 'OpenAI text-embedding-3-small (1536 dims)';
-COMMENT ON INDEX idx_embeddings_hnsw IS 'HNSW index for fast cosine similarity search';
+COMMENT ON TABLE public.embeddings IS 'Dual vector embeddings for RAG similarity search';
+COMMENT ON COLUMN public.embeddings.nlp_embedding IS 'NLP embedding (textified code) for natural language queries';
+COMMENT ON COLUMN public.embeddings.code_embedding IS 'Code embedding (raw code) for code-to-code similarity';
+COMMENT ON INDEX idx_embeddings_nlp_hnsw IS 'HNSW index for NLP embedding cosine similarity search';
+COMMENT ON INDEX idx_embeddings_code_hnsw IS 'HNSW index for Code embedding cosine similarity search';
 
 
 -- ============================================================
@@ -432,12 +442,13 @@ COMMENT ON FUNCTION public.get_user_selected_repos IS 'Returns array of repo IDs
 
 -- ------------------------------------------------------------
 -- Function: search_similar_chunks
--- Description: Semantic search in user's selected repos
+-- Description: Semantic search in user's selected repos using dual embeddings
 -- Parameters:
 --   - user_uuid: User ID
 --   - query_embedding: Query vector (1536 dims)
 --   - match_threshold: Similarity threshold (0-1)
 --   - match_count: Max results to return
+--   - search_mode: 'nlp' (natural language) or 'code' (code similarity)
 -- Returns: Chunks with similarity scores, filtered by selected repos
 -- ------------------------------------------------------------
 
@@ -445,7 +456,8 @@ CREATE OR REPLACE FUNCTION public.search_similar_chunks(
   user_uuid UUID,
   query_embedding VECTOR(1536),
   match_threshold FLOAT DEFAULT 0.7,
-  match_count INT DEFAULT 10
+  match_count INT DEFAULT 10,
+  search_mode TEXT DEFAULT 'nlp'
 )
 RETURNS TABLE(
   chunk_id TEXT,
@@ -470,31 +482,56 @@ BEGIN
     RETURN;
   END IF;
 
-  -- Perform similarity search
-  RETURN QUERY
-  SELECT
-    c.chunk_id,
-    c.repo_id,
-    r.full_name as repo_full_name,
-    c.file_path,
-    c.code,
-    c.chunk_type,
-    c.name,
-    c.signature,
-    c.docstring,
-    1 - (e.embedding <=> query_embedding) as similarity
-  FROM public.embeddings e
-  JOIN public.code_chunks c ON e.chunk_id = c.chunk_id
-  JOIN public.repositories r ON c.repo_id = r.id
-  WHERE c.repo_id = ANY(selected_repos)
-    AND r.status = 'ready'  -- Only search in ready repos
-    AND 1 - (e.embedding <=> query_embedding) > match_threshold
-  ORDER BY e.embedding <=> query_embedding
-  LIMIT match_count;
+  -- Perform similarity search based on mode
+  IF search_mode = 'code' THEN
+    -- Code-to-code similarity using code_embedding
+    RETURN QUERY
+    SELECT
+      c.chunk_id,
+      c.repo_id,
+      r.full_name as repo_full_name,
+      c.file_path,
+      c.code,
+      c.chunk_type,
+      c.name,
+      c.signature,
+      c.docstring,
+      1 - (e.code_embedding <=> query_embedding) as similarity
+    FROM public.embeddings e
+    JOIN public.code_chunks c ON e.chunk_id = c.chunk_id
+    JOIN public.repositories r ON c.repo_id = r.id
+    WHERE c.repo_id = ANY(selected_repos)
+      AND r.status = 'ready'
+      AND 1 - (e.code_embedding <=> query_embedding) > match_threshold
+    ORDER BY e.code_embedding <=> query_embedding
+    LIMIT match_count;
+  ELSE
+    -- Natural language search using nlp_embedding
+    RETURN QUERY
+    SELECT
+      c.chunk_id,
+      c.repo_id,
+      r.full_name as repo_full_name,
+      c.file_path,
+      c.code,
+      c.chunk_type,
+      c.name,
+      c.signature,
+      c.docstring,
+      1 - (e.nlp_embedding <=> query_embedding) as similarity
+    FROM public.embeddings e
+    JOIN public.code_chunks c ON e.chunk_id = c.chunk_id
+    JOIN public.repositories r ON c.repo_id = r.id
+    WHERE c.repo_id = ANY(selected_repos)
+      AND r.status = 'ready'
+      AND 1 - (e.nlp_embedding <=> query_embedding) > match_threshold
+    ORDER BY e.nlp_embedding <=> query_embedding
+    LIMIT match_count;
+  END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-COMMENT ON FUNCTION public.search_similar_chunks IS 'RAG similarity search filtered by user selected repos';
+COMMENT ON FUNCTION public.search_similar_chunks IS 'RAG similarity search with dual embeddings (nlp/code modes)';
 
 
 -- ============================================================
