@@ -1,62 +1,97 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '../client';
+import type { AuthError } from '@supabase/supabase-js';
+
+interface AuthResponse<T = unknown> {
+  data: T | null;
+  error: string | null;
+}
 
 export function useSignUp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const signUp = async (email: string, password: string, fullName?: string) => {
+  const handleAuthError = useCallback((err: unknown): string => {
+    if (err instanceof Error) {
+      return err.message;
+    }
+    if (typeof err === 'object' && err !== null && 'message' in err) {
+      return (err as AuthError).message;
+    }
+    return 'An unexpected error occurred';
+  }, []);
+
+  const executeAuth = useCallback(async <T,>(
+    authFn: () => Promise<{ data: T; error: AuthError | null }>,
+    fallbackError: string
+  ): Promise<AuthResponse<T>> => {
     try {
       setLoading(true);
       setError(null);
 
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
+      const result = await authFn();
+
+      if (result.error) throw result.error;
+
+      return { data: result.data, error: null };
+    } catch (err) {
+      const errorMessage = handleAuthError(err) || fallbackError;
+      setError(errorMessage);
+      return { data: null, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  }, [handleAuthError]);
+
+  const signUp = useCallback(
+    async (email: string, password: string, fullName?: string) => {
+      return executeAuth(
+        async () => {
+          const result = await supabase.auth.signUp({
+            email,
+            password,
+            options: fullName ? { data: { full_name: fullName } } : undefined,
+          });
+          return result as any;
         },
-      });
+        'Failed to sign up'
+      );
+    },
+    [executeAuth]
+  );
 
-      if (signUpError) throw signUpError;
+  const signInWithEmail = useCallback(
+    async (email: string, password: string) => {
+      return executeAuth(
+        async () => {
+          const result = await supabase.auth.signInWithPassword({ email, password });
+          return result as any;
+        },
+        'Failed to sign in'
+      );
+    },
+    [executeAuth]
+  );
 
-      return { data, error: null };
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to sign up';
-      setError(errorMessage);
-      return { data: null, error: errorMessage };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signInWithEmail = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) throw signInError;
-
-      return { data, error: null };
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to sign in';
-      setError(errorMessage);
-      return { data: null, error: errorMessage };
-    } finally {
-      setLoading(false);
-    }
-  };
+  const signInWithGithub = useCallback(async () => {
+    return executeAuth(
+      async () => {
+        const result = await supabase.auth.signInWithOAuth({
+          provider: 'github',
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`,
+          },
+        });
+        return result as any;
+      },
+      'Failed to sign in with GitHub'
+    );
+  }, [executeAuth]);
 
   return {
     signUp,
     signInWithEmail,
+    signInWithGithub,
     loading,
     error,
   };
