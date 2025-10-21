@@ -163,46 +163,82 @@ class SkillRAG:
         
         return match_percentage * 100, confidence
 
-    def generate_intelligent_response(self, user_skills: List[str], required_skills: List[str], 
-                                    relationships: Dict[str, List[str]], 
-                                    match_score: float, confidence: float) -> str:
-        """Generate intelligent response with MeTTa reasoning."""
-        
+    def generate_intelligent_response(self, user_skills: List[str], required_skills: List[str],
+                                    relationships: Dict[str, List[str]],
+                                    match_score: float, confidence: float, historical_data: List[Dict] = None) -> str:
+        """
+        Generate intelligent response with MeTTa reasoning + RAG historical data.
+
+        Args:
+            user_skills: User's skills
+            required_skills: Required skills for match
+            relationships: Skill relationships found
+            match_score: Match percentage
+            confidence: Confidence level
+            historical_data: Retrieved similar matches from Supabase RAG (optional)
+        """
+
         response = f"""🎯 **Intelligent Skill Match Analysis**
 
 **Match Score:** {match_score:.0f}%
-**Confidence:** {confidence:.0f}%
+**Confidence:** {confidence:.0f}%"""
+
+        # 🔥 RAG AUGMENTATION: Add insights from historical data
+        if historical_data and len(historical_data) > 0:
+            response += f"\n\n📊 **RAG Insights:** Found {len(historical_data)} similar skill matches in knowledge base"
+
+            # Extract historical match scores
+            historical_scores = []
+            for hist_match in historical_data:
+                content = hist_match.get('content', '')
+                import re
+                score_match = re.search(r'Match Score: (\d+)%', content)
+                if score_match:
+                    historical_scores.append(float(score_match.group(1)))
+
+            if historical_scores:
+                avg_historical_score = sum(historical_scores) / len(historical_scores)
+                response += f"\n  • Historical average match score: {avg_historical_score:.0f}%"
+                score_diff = match_score - avg_historical_score
+                if score_diff > 10:
+                    response += f"\n  • 📈 Your match is {score_diff:.0f}% BETTER than historical average!"
+                elif score_diff < -10:
+                    response += f"\n  • 📉 Your match is {abs(score_diff):.0f}% below historical average"
+                else:
+                    response += f"\n  • ✅ Your match aligns with historical patterns"
+
+        response += f"""
 
 ✅ **Exact Matches ({len(relationships['exact_matches'])}):**
 {', '.join(relationships['exact_matches']) if relationships['exact_matches'] else '  None'}
 
 🔄 **Related Skills ({len(relationships['alternatives'])}):**"""
-        
+
         for alt in relationships['alternatives']:
             response += f"\n  • You have {alt['user_has']} (alternative to {alt['required']})"
-        
+
         if relationships['prerequisites']:
             response += f"\n\n📚 **Prerequisites Met ({len(relationships['prerequisites'])}):**"
             for prereq in relationships['prerequisites']:
                 response += f"\n  • You have {prereq['user_has']} (prerequisite for {prereq['required']})"
-        
+
         if relationships['domain_matches']:
             response += f"\n\n🌐 **Domain Expertise ({len(relationships['domain_matches'])}):**"
             for domain in relationships['domain_matches']:
                 response += f"\n  • You have {domain['user_has']} (same domain as {domain['required']} - {domain['domain']})"
-        
+
         # Missing skills
-        all_covered = (relationships['exact_matches'] + 
+        all_covered = (relationships['exact_matches'] +
                       [alt['required'] for alt in relationships['alternatives']] +
                       [prereq['required'] for prereq in relationships['prerequisites']] +
                       [domain['required'] for domain in relationships['domain_matches']])
-        
+
         missing_skills = [skill for skill in required_skills if skill not in all_covered]
-        
+
         if missing_skills:
             response += f"\n\n❌ **Missing Skills ({len(missing_skills)}):**\n"
             response += '\n'.join([f"  • {skill}" for skill in missing_skills])
-        
+
         # Intelligent recommendation
         response += f"\n\n💡 **AI Recommendation:** "
         if confidence >= 80:
@@ -213,7 +249,9 @@ class SkillRAG:
             response += "CONSIDER - Moderate match, significant learning needed"
         else:
             response += "CHALLENGING - Major skill gap, consider prerequisites first"
-        
-        response += f"\n\n🧠 **MeTTa Reasoning:** Analyzed {len(user_skills)} user skills against {len(required_skills)} requirements using symbolic AI"
-        
+
+        response += f"\n\n🧠 **MeTTa AI + RAG:** Analyzed {len(user_skills)} user skills against {len(required_skills)} requirements using symbolic AI"
+        if historical_data:
+            response += f" enhanced with {len(historical_data)} historical matches"
+
         return response

@@ -23,6 +23,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from shared.knowledge_base import shared_kb
 from supabase_agent_client import create_supabase_agent_client
 
+# MeTTa imports for intelligent reasoning
+from hyperon import MeTTa
+from metta.knowledge import initialize_profile_knowledge_graph
+from metta.profilerag import ProfileRAG
+
 load_dotenv()
 
 # Initialize Supabase client
@@ -37,12 +42,17 @@ agent = Agent(
     publish_agent_details=True
 )
 
+# Initialize MeTTa AI reasoning
+metta = MeTTa()
+initialize_profile_knowledge_graph(metta)
+profile_rag = ProfileRAG(metta)
+
 chat_proto = Protocol(spec=chat_protocol_spec)
 
 
 @chat_proto.on_message(ChatMessage)
 async def handle_message(ctx: Context, sender: str, msg: ChatMessage):
-    """Handle user profile queries"""
+    """Handle intelligent user profile queries with natural language processing"""
 
     text_content = next(
         (item for item in msg.content if isinstance(item, TextContent)),
@@ -58,63 +68,76 @@ async def handle_message(ctx: Context, sender: str, msg: ChatMessage):
         return
 
     user_message = text_content.text.strip()
-    ctx.logger.info(f"Processing user profile query: {user_message[:100]}")
+    ctx.logger.info(f"Processing intelligent user profile query: {user_message[:100]}")
 
     try:
-        # Parse query (expect JSON with user_id and optionally action)
-        query = json.loads(user_message)
-        user_id = query.get("user_id")
-        action = query.get("action", "get_profile")
+        # Default values for natural language processing
+        import hashlib
+        import uuid
 
-        if not user_id:
-            await ctx.send(sender, ChatMessage(
-                content=[TextContent(text="❌ user_id required")],
-                timestamp=datetime.now(),
-                msg_id=msg.msg_id
-            ))
-            return
+        # Generate unique user_id based on sender or create anonymous ID
+        user_id = f"user_{hashlib.md5(sender.encode()).hexdigest()[:8]}"
+        skills = []
+        years_experience = 0
 
-        # Mock profile data (in production, fetch from database)
-        profile = {
-            "user_id": user_id,
-            "skills": query.get("skills", ["Python", "JavaScript"]),
-            "years_experience": query.get("years_experience", 3),
-            "completed_bounties": query.get("completed_bounties", 5),
-            "avg_complexity": query.get("avg_complexity", 6),
-            "preferences": {
-                "min_bounty": query.get("min_bounty", 50),
-                "max_bounty": query.get("max_bounty", 500),
-                "repo_size_pref": "small",  # < 1000 stars
-                "work_hours_per_week": 20
+        # Try to parse as JSON first
+        try:
+            query = json.loads(user_message)
+            if isinstance(query, dict):
+                user_id = query.get("user_id", user_id)
+                skills = query.get("skills", [])
+                years_experience = query.get("years_experience", 0)
+        except json.JSONDecodeError:
+            # Natural language processing - extract information from text
+            ctx.logger.info("Processing as natural language query")
+
+            # Extract skills from text (simple keyword matching)
+            skill_keywords = {
+                "python": "Python", "javascript": "JavaScript", "js": "JavaScript",
+                "react": "React", "node": "Node.js", "nodejs": "Node.js",
+                "java": "Java", "go": "Go", "rust": "Rust",
+                "typescript": "TypeScript", "ts": "TypeScript",
+                "fastapi": "FastAPI", "django": "Django"
             }
-        }
 
-        # Use shared knowledge base
-        skill_level = shared_kb.query_skill_level(profile["years_experience"])
+            message_lower = user_message.lower()
+            for keyword, skill_name in skill_keywords.items():
+                if keyword in message_lower:
+                    if skill_name not in skills:
+                        skills.append(skill_name)
 
-        # Add insight to shared KB
-        shared_kb.add_user_insight(user_id, {
-            "skill_level": skill_level,
-            "expertise": profile["skills"],
-            "preferences": profile["preferences"]
-        })
+            # Extract years of experience (look for patterns like "3 years", "5+ years")
+            import re
+            years_match = re.search(r'(\d+)\s*(?:years?|yrs?)', message_lower)
+            if years_match:
+                years_experience = int(years_match.group(1))
 
-        # Generate response
-        response = f"""
-👤 **User Profile: {user_id}**
+            # If NO skills or experience detected, inform user
+            if not skills and years_experience == 0:
+                await ctx.send(sender, ChatMessage(
+                    content=[TextContent(text="""🤖 **User Profile Agent**
 
-**Skills:** {', '.join(profile['skills'])}
-**Experience Level:** {skill_level.title()} ({profile['years_experience']} years)
-**Bounties Completed:** {profile['completed_bounties']}
-**Avg Complexity Solved:** {profile['avg_complexity']}/10
+I couldn't extract skills or experience from your message.
 
-**Preferences:**
-- Bounty Range: ${profile['preferences']['min_bounty']} - ${profile['preferences']['max_bounty']}
-- Repo Size: {profile['preferences']['repo_size_pref']}
-- Available: {profile['preferences']['work_hours_per_week']}h/week
+**Try asking like:**
+• "I'm a Python developer with 5 years of experience"
+• "I know React, JavaScript and have 3 years experience"
+• Or send JSON: `{"user_id": "your_id", "skills": ["Python"], "years_experience": 5}`
 
-🧠 **Insight:** User prefers {profile['preferences']['repo_size_pref']} repos and mid-tier bounties.
-        """
+What are your skills and experience level?""")],
+                    timestamp=datetime.now(),
+                    msg_id=msg.msg_id
+                ))
+                return
+
+        ctx.logger.info(f"Detected: user={user_id}, skills={skills}, years={years_experience}")
+
+        # Use MeTTa AI for intelligent profile analysis
+        response = profile_rag.generate_intelligent_profile(
+            user_id=user_id,
+            skills=skills,
+            years=years_experience
+        )
 
         await ctx.send(sender, ChatMessage(
             content=[TextContent(text=response.strip())],
@@ -155,12 +178,29 @@ class ProfileResponse(Model):
 
 @agent.on_rest_post("/api/query", ProfileRequest, ProfileResponse)
 async def handle_rest_query(ctx: Context, req: ProfileRequest) -> ProfileResponse:
-    """REST endpoint for orchestrator to query this agent"""
+    """REST endpoint for orchestrator to query this agent - INTELLIGENT RAG with MeTTa"""
 
-    ctx.logger.info(f"REST: Processing profile for {req.user_id}")
+    ctx.logger.info(f"REST: Processing intelligent RAG profile for {req.user_id}")
 
-    # Use shared knowledge base
-    skill_level = shared_kb.query_skill_level(req.years_experience)
+    # 🔍 STEP 1: RAG RETRIEVAL - Search for similar profiles in Supabase
+    ctx.logger.info(f"🔍 RAG RETRIEVAL: Searching for similar profiles...")
+    historical_data = await supabase_client.search_similar_user_profiles(
+        skills=req.skills if req.skills else [],
+        years_experience=req.years_experience,
+        limit=5
+    )
+    ctx.logger.info(f"✅ Found {len(historical_data)} similar profiles in knowledge base")
+
+    # 🧠 STEP 2: RAG AUGMENTATION - Use MeTTa AI + historical data for intelligent analysis
+    response = profile_rag.generate_intelligent_profile(
+        user_id=req.user_id,
+        skills=req.skills if req.skills else [],
+        years=req.years_experience,
+        historical_data=historical_data  # ← RAG historical data!
+    )
+
+    # Get skill level for backward compatibility
+    skill_level = profile_rag.get_experience_level(req.years_experience)
 
     # Add insight to shared KB
     shared_kb.add_user_insight(req.user_id, {
@@ -168,19 +208,12 @@ async def handle_rest_query(ctx: Context, req: ProfileRequest) -> ProfileRespons
         "expertise": req.skills,
     })
 
-    # Generate response
-    response = f"""👤 **User Profile: {req.user_id}**
-
-**Skills:** {', '.join(req.skills) if req.skills else 'No skills provided'}
-**Experience Level:** {skill_level.title()} ({req.years_experience} years)
-
-🧠 **Insight:** {skill_level.title()} developer with {len(req.skills)} skills"""
-
-    # Store profile pattern in Supabase for RAG
+    # 💾 STEP 3: RAG STORAGE - Store new profile pattern in Supabase for future learning
+    ctx.logger.info(f"💾 RAG STORAGE: Saving new profile pattern to knowledge base...")
     asyncio.create_task(supabase_client.store_user_profile_pattern(
         agent_id=agent.address,
         user_id=req.user_id,
-        skills=req.skills,
+        skills=req.skills if req.skills else [],
         years_experience=req.years_experience,
         skill_level=skill_level,
         preferences={}

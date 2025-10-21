@@ -150,25 +150,42 @@ class SupabaseAgentClient:
         )
     
     async def find_similar_skill_patterns(
-        self, 
+        self,
         user_skills: List[str],
         required_skills: List[str],
         limit: int = 5
     ) -> List[Dict[str, Any]]:
-        """Find similar skill patterns using text search"""
-        
-        # Create search query
-        search_terms = user_skills + required_skills
-        query = ' '.join(search_terms)
-        
-        # Search for similar patterns
-        results = await self.search_agent_knowledge(
-            query=query,
-            topic='skill_matching',
-            limit=limit
-        )
-        
-        return results
+        """Find similar skill patterns using tag-based search"""
+        try:
+            # Search by topic first
+            query_builder = self.supabase.table('agent_knowledge').select('*').eq('topic', 'skill_matching')
+
+            # Build search tags from both user and required skills
+            search_tags = user_skills + required_skills + ['skill_match']
+
+            # Get all skill patterns with matching topic
+            all_results = query_builder.limit(100).execute()
+
+            # Filter results that have matching tags
+            filtered_results = []
+            for result in all_results.data:
+                result_tags = result.get('tags', [])
+                # Check if any of our search tags are in the result tags
+                if any(tag in result_tags for tag in search_tags):
+                    filtered_results.append(result)
+
+            # Limit results
+            filtered_results = filtered_results[:limit]
+
+            print(f"🔍 RAG RETRIEVAL: Found {len(filtered_results)} similar skill patterns")
+
+            return filtered_results
+
+        except Exception as e:
+            print(f"Error finding similar skill patterns: {e}")
+            import traceback
+            traceback.print_exc()
+            return []
     
     async def increment_access_count(self, knowledge_id: str):
         """Increment access count for knowledge"""
@@ -186,6 +203,58 @@ class SupabaseAgentClient:
 
         except Exception as e:
             print(f"Error incrementing access count: {e}")
+
+    async def search_similar_user_profiles(
+        self,
+        skills: List[str],
+        years_experience: int,
+        limit: int = 5
+    ) -> List[Dict[str, Any]]:
+        """
+        RAG RETRIEVAL: Search for similar user profiles in knowledge base
+        Returns historical profiles that match skills and experience level
+        """
+        try:
+            # Determine experience level
+            if years_experience < 2:
+                exp_level = 'beginner'
+            elif years_experience < 5:
+                exp_level = 'intermediate'
+            elif years_experience < 10:
+                exp_level = 'advanced'
+            else:
+                exp_level = 'expert'
+
+            # Search by topic first
+            query_builder = self.supabase.table('agent_knowledge').select('*').eq('topic', 'user_profiles')
+
+            # Filter by tags (skills + experience level)
+            # Use contains to match any of the skills or experience level in tags
+            search_tags = skills + [exp_level]
+
+            # Get all profiles with matching topic
+            all_results = query_builder.limit(100).execute()
+
+            # Filter results that have matching tags
+            filtered_results = []
+            for result in all_results.data:
+                result_tags = result.get('tags', [])
+                # Check if any of our search tags are in the result tags
+                if any(tag in result_tags for tag in search_tags):
+                    filtered_results.append(result)
+
+            # Limit results
+            filtered_results = filtered_results[:limit]
+
+            print(f"🔍 RAG RETRIEVAL: Found {len(filtered_results)} similar user profiles")
+
+            return filtered_results
+
+        except Exception as e:
+            print(f"Error searching similar user profiles: {e}")
+            import traceback
+            traceback.print_exc()
+            return []
 
     async def store_user_profile_pattern(
         self,
@@ -217,6 +286,49 @@ class SupabaseAgentClient:
             tags=tags,
             confidence=0.9
         )
+
+    async def search_similar_bounty_estimates(
+        self,
+        complexity_score: int,
+        required_skills: List[str],
+        estimated_hours: int = None,
+        limit: int = 5
+    ) -> List[Dict[str, Any]]:
+        """
+        RAG RETRIEVAL: Search for similar bounty estimates in knowledge base
+        Returns historical estimates with similar complexity and skills
+        """
+        try:
+            # Search by topic first
+            query_builder = self.supabase.table('agent_knowledge').select('*').eq('topic', 'bounty_estimation')
+
+            # Build search tags
+            complexity_tag = f'complexity_{complexity_score}'
+            search_tags = required_skills + [complexity_tag, 'bounty_estimation']
+
+            # Get all estimates with matching topic
+            all_results = query_builder.limit(100).execute()
+
+            # Filter results that have matching tags
+            filtered_results = []
+            for result in all_results.data:
+                result_tags = result.get('tags', [])
+                # Check if any of our search tags are in the result tags
+                if any(tag in result_tags for tag in search_tags):
+                    filtered_results.append(result)
+
+            # Limit results
+            filtered_results = filtered_results[:limit]
+
+            print(f"🔍 RAG RETRIEVAL: Found {len(filtered_results)} similar bounty estimates")
+
+            return filtered_results
+
+        except Exception as e:
+            print(f"Error searching similar bounty estimates: {e}")
+            import traceback
+            traceback.print_exc()
+            return []
 
     async def store_bounty_estimation_pattern(
         self,

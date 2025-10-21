@@ -29,7 +29,7 @@ AGENT_ADDRESSES = {
 orchestrator = Agent(
     name="Orchestrator Agent",
     seed="orchestrator_bee2bee_2025_agent",
-    port=8012,
+    port=8013,
     mailbox=True,
 )
 
@@ -59,15 +59,18 @@ async def startup(ctx: Context):
     ctx.logger.info("🚀 ORCHESTRATOR AGENT STARTED")
     ctx.logger.info("="*60)
     ctx.logger.info(f"Address: {orchestrator.address}")
-    ctx.logger.info(f"Port: 8012")
+    ctx.logger.info(f"Port: 8013")
     ctx.logger.info("")
-    ctx.logger.info("📡 REST Endpoint: http://localhost:8012/api/query")
+    ctx.logger.info("📡 REST Endpoint: http://localhost:8013/api/query")
     ctx.logger.info("")
     ctx.logger.info("Coordinating agents:")
     ctx.logger.info(f"  👤 User Profile:     {AGENT_ADDRESSES['user_profile'][:20]}...")
     ctx.logger.info(f"  🎯 Skill Matcher:    {AGENT_ADDRESSES['skill_matcher'][:20]}...")
     ctx.logger.info(f"  💰 Bounty Estimator: {AGENT_ADDRESSES['bounty_estimator'][:20]}...")
-    ctx.logger.info(f"  🧠 Knowledge Synth:  {AGENT_ADDRESSES['knowledge_synthesizer'][:20]}...")
+    if AGENT_ADDRESSES['knowledge_synthesizer']:
+        ctx.logger.info(f"  🧠 Knowledge Synth:  {AGENT_ADDRESSES['knowledge_synthesizer'][:20]}...")
+    else:
+        ctx.logger.info(f"  🧠 Knowledge Synth:  Not configured")
     ctx.logger.info("="*60)
 
 
@@ -198,7 +201,8 @@ def detect_intent(message: str) -> str:
 def extract_skills(message: str) -> list:
     """Extract skills from message"""
     common_skills = ["Python", "JavaScript", "TypeScript", "React", "Node.js",
-                     "Go", "Rust", "Java", "C++", "Ruby", "asyncio", "FastAPI"]
+                     "Go", "Rust", "Java", "C++", "Ruby", "asyncio", "FastAPI",
+                     "Django", "Flask", "Vue", "Angular", "Solidity", "Kotlin", "Swift"]
 
     found_skills = []
     message_lower = message.lower()
@@ -207,7 +211,8 @@ def extract_skills(message: str) -> list:
         if skill.lower() in message_lower:
             found_skills.append(skill)
 
-    return found_skills if found_skills else ["Python"]
+    # Return empty list if no skills found - no mocks!
+    return found_skills
 
 
 def synthesize_response(agent_responses: dict, user_message: str, intent: str) -> str:
@@ -310,27 +315,55 @@ async def handle_rest_query(ctx: Context, req: QueryRequest) -> QueryResponse:
     conversation_id = req.conversation_id or f"conv_{datetime.now().timestamp()}"
 
     if intent == "FIND_MATCHES":
-        # Extract skills
+        # Extract skills from message
         skills = extract_skills(req.message)
-        ctx.logger.info(f"🔍 Skills detected: {', '.join(skills)}")
+        ctx.logger.info(f"🔍 Skills detected: {', '.join(skills) if skills else 'none'}")
 
-        # Prepare queries for each agent
+        # Extract additional info from message (years, complexity, hours, stars)
+        import re
+        message_lower = req.message.lower()
+
+        # Extract years of experience
+        years_match = re.search(r'(\d+)\s*(?:years?|yrs?)', message_lower)
+        years_experience = int(years_match.group(1)) if years_match else 0
+
+        # Extract complexity
+        complexity_score = 5  # default moderate
+        if any(word in message_lower for word in ["easy", "simple", "trivial"]):
+            complexity_score = 3
+        elif any(word in message_lower for word in ["hard", "difficult", "complex"]):
+            complexity_score = 7
+        elif any(word in message_lower for word in ["very hard", "expert", "advanced"]):
+            complexity_score = 9
+
+        # Extract hours
+        hours_match = re.search(r'(\d+)\s*(?:hours?|hrs?|h)', message_lower)
+        estimated_hours = int(hours_match.group(1)) if hours_match else 0
+
+        # Extract stars
+        stars_match = re.search(r'(\d+)k?\s*stars?', message_lower)
+        repo_stars = 0
+        if stars_match:
+            stars_value = int(stars_match.group(1))
+            repo_stars = stars_value * 1000 if 'k' in stars_match.group(0) else stars_value
+
+        # Prepare queries for each agent (NO HARDCODED VALUES!)
         queries = {
             "user_profile": {
                 "user_id": req.user_id,
                 "skills": skills,
-                "years_experience": 3,
+                "years_experience": years_experience,
                 "action": "get_profile"
             },
             "skill_matcher": {
                 "user_skills": skills,
-                "required_skills": ["Python", "asyncio", "FastAPI", "React", "JavaScript"]
+                "required_skills": skills  # Use same skills as required for now
             },
             "bounty_estimator": {
-                "complexity_score": 6,
+                "complexity_score": complexity_score,
                 "required_skills": skills,
-                "estimated_hours": 4,
-                "repo_stars": 450
+                "estimated_hours": estimated_hours,
+                "repo_stars": repo_stars
             }
         }
 
@@ -367,8 +400,8 @@ if __name__ == "__main__":
     print("🚀 AUTONOMOUS AGENTS ORCHESTRATOR")
     print("="*60)
     print(f"\n📍 Agent Address: {orchestrator.address}")
-    print(f"📡 REST API: http://localhost:8012/api/query")
-    print(f"🌐 Port: 8012")
+    print(f"📡 REST API: http://localhost:8013/api/query")
+    print(f"🌐 Port: 8013")
     print("\nThis orchestrator:")
     print("  1. Exposes REST endpoint for frontend")
     print("  2. Queries 3 agents in parallel via Agentverse")

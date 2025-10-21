@@ -182,20 +182,31 @@ class SkillMatchResponse(Model):
 
 @agent.on_rest_post("/api/query", SkillMatchRequest, SkillMatchResponse)
 async def handle_rest_query(ctx: Context, req: SkillMatchRequest) -> SkillMatchResponse:
-    """REST endpoint for orchestrator to query this intelligent agent"""
+    """REST endpoint for orchestrator to query this intelligent agent - INTELLIGENT RAG with MeTTa"""
 
-    ctx.logger.info(f"REST: Intelligent skill matching - User: {req.user_skills}, Required: {req.required_skills}")
+    ctx.logger.info(f"REST: Intelligent RAG skill matching - User: {req.user_skills}, Required: {req.required_skills}")
+
+    # 🔍 STEP 1: RAG RETRIEVAL - Search for similar skill matches in Supabase
+    ctx.logger.info(f"🔍 RAG RETRIEVAL: Searching for similar skill matches...")
+    historical_data = await supabase_client.find_similar_skill_patterns(
+        user_skills=req.user_skills,
+        required_skills=req.required_skills,
+        limit=5
+    )
+    ctx.logger.info(f"✅ Found {len(historical_data)} similar skill matches in knowledge base")
 
     # Use intelligent skill matching
     relationships = skill_rag.find_skill_relationships(req.user_skills, req.required_skills)
     match_score, confidence = skill_rag.calculate_match_score(relationships, req.required_skills)
-    
-    # Generate intelligent response
+
+    # 🧠 STEP 2: RAG AUGMENTATION - Generate intelligent response with MeTTa + historical data
     response = skill_rag.generate_intelligent_response(
-        req.user_skills, req.required_skills, relationships, match_score, confidence
+        req.user_skills, req.required_skills, relationships, match_score, confidence,
+        historical_data=historical_data  # ← RAG historical data!
     )
 
-    # Store knowledge in Supabase for learning
+    # 💾 STEP 3: RAG STORAGE - Store new skill match pattern in Supabase for future learning
+    ctx.logger.info(f"💾 RAG STORAGE: Saving new skill match pattern to knowledge base...")
     asyncio.create_task(supabase_client.store_skill_match_pattern(
         agent_id=agent.address,
         user_skills=req.user_skills,

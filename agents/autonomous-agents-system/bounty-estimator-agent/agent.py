@@ -21,6 +21,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from shared.knowledge_base import shared_kb
 from supabase_agent_client import create_supabase_agent_client
 
+# MeTTa imports for intelligent reasoning
+from hyperon import MeTTa
+from metta.knowledge import initialize_bounty_knowledge_graph
+from metta.bountyrag import BountyRAG
+
 load_dotenv()
 
 # Initialize Supabase client
@@ -34,12 +39,17 @@ agent = Agent(
     publish_agent_details=True
 )
 
+# Initialize MeTTa AI reasoning
+metta = MeTTa()
+initialize_bounty_knowledge_graph(metta)
+bounty_rag = BountyRAG(metta)
+
 chat_proto = Protocol(spec=chat_protocol_spec)
 
 
 @chat_proto.on_message(ChatMessage)
 async def handle_message(ctx: Context, sender: str, msg: ChatMessage):
-    """Handle bounty estimation queries"""
+    """Handle intelligent bounty estimation queries with natural language processing"""
 
     text_content = next(
         (item for item in msg.content if isinstance(item, TextContent)),
@@ -55,80 +65,103 @@ async def handle_message(ctx: Context, sender: str, msg: ChatMessage):
         return
 
     user_message = text_content.text.strip()
-    ctx.logger.info(f"Processing bounty estimation: {user_message[:100]}")
+    ctx.logger.info(f"Processing intelligent bounty estimation: {user_message[:100]}")
 
     try:
-        query = json.loads(user_message)
+        # Default values for natural language processing (will be updated from query)
+        complexity_score = None
+        required_skills = []
+        estimated_hours = None
+        repo_stars = 0
 
-        # Extract issue details
-        complexity_score = query.get("complexity_score", 5)
-        required_skills = query.get("required_skills", [])
-        estimated_hours = query.get("estimated_hours", 10)
-        repo_stars = query.get("repo_stars", 500)
+        # Try to parse as JSON first
+        try:
+            query = json.loads(user_message)
+            if isinstance(query, dict):
+                complexity_score = query.get("complexity_score")
+                required_skills = query.get("required_skills", [])
+                estimated_hours = query.get("estimated_hours")
+                repo_stars = query.get("repo_stars", 0)
+        except json.JSONDecodeError:
+            # Natural language processing - extract information from text
+            ctx.logger.info("Processing as natural language query")
 
-        # Use shared KB for complexity assessment
-        complexity_level = shared_kb.query_complexity_level(complexity_score)
+            # Extract skills from text
+            skill_keywords = {
+                "python": "Python", "javascript": "JavaScript", "js": "JavaScript",
+                "react": "React", "node": "Node.js", "nodejs": "Node.js",
+                "java": "Java", "go": "Go", "rust": "Rust",
+                "typescript": "TypeScript", "ts": "TypeScript",
+                "solidity": "Solidity", "blockchain": "Blockchain",
+                "fastapi": "FastAPI", "django": "Django"
+            }
 
-        # Base rates by complexity
-        base_rates = {
-            "trivial": 25,
-            "easy": 50,
-            "moderate": 100,
-            "hard": 200,
-            "very-hard": 400
-        }
+            message_lower = user_message.lower()
+            for keyword, skill_name in skill_keywords.items():
+                if keyword in message_lower:
+                    if skill_name not in required_skills:
+                        required_skills.append(skill_name)
 
-        base_value = base_rates.get(complexity_level, 100)
+            # Extract complexity (look for keywords)
+            if any(word in message_lower for word in ["trivial", "simple", "easy"]):
+                complexity_score = 3
+            elif any(word in message_lower for word in ["moderate", "medium"]):
+                complexity_score = 5
+            elif any(word in message_lower for word in ["hard", "difficult", "complex"]):
+                complexity_score = 7
+            elif any(word in message_lower for word in ["very hard", "expert", "advanced"]):
+                complexity_score = 9
 
-        # Adjust by hours
-        value_by_hours = estimated_hours * 10  # $10/hour base
+            # Extract hours (look for patterns like "20 hours", "10h", "5-10 hours")
+            import re
+            hours_match = re.search(r'(\d+)\s*(?:hours?|hrs?|h)', message_lower)
+            if hours_match:
+                estimated_hours = int(hours_match.group(1))
 
-        # Adjust by tech stack (some skills worth more)
-        premium_skills = ["Rust", "Go", "Solidity", "Kotlin", "Swift"]
-        has_premium = any(skill in premium_skills for skill in required_skills)
-        tech_multiplier = 1.3 if has_premium else 1.0
+            # Extract stars (look for patterns like "5000 stars", "5k stars")
+            stars_match = re.search(r'(\d+)k?\s*stars?', message_lower)
+            if stars_match:
+                stars_value = int(stars_match.group(1))
+                repo_stars = stars_value * 1000 if 'k' in stars_match.group(0) else stars_value
 
-        # Adjust by repo popularity
-        pop_multiplier = 1.0
-        if repo_stars > 10000:
-            pop_multiplier = 1.5
-        elif repo_stars > 1000:
-            pop_multiplier = 1.2
+            # Apply intelligent defaults only if we have SOME information
+            if not complexity_score:
+                complexity_score = 5  # Default to moderate if not specified
 
-        # Calculate final estimate
-        estimated_value = int(base_value * tech_multiplier * pop_multiplier)
-        min_value = int(estimated_value * 0.8)
-        max_value = int(estimated_value * 1.3)
+            if not estimated_hours:
+                estimated_hours = 10  # Default to 10 hours if not specified
 
-        # Calculate hourly rate
-        hourly_rate = estimated_value / estimated_hours if estimated_hours > 0 else 0
+        # Validate that we have minimum required information
+        if complexity_score is None or estimated_hours is None:
+            await ctx.send(sender, ChatMessage(
+                content=[TextContent(text="""🤖 **Bounty Estimator Agent**
 
-        response = f"""
-💰 **Bounty Estimation**
+I need more information to estimate the bounty value.
 
-**Complexity:** {complexity_level.title()} ({complexity_score}/10)
-**Estimated Time:** ~{estimated_hours} hours
-**Repository:** {repo_stars} stars
+**Try asking like:**
+• "Estimate a moderate complexity Python task, 20 hours, 5000 stars"
+• "Hard Rust bounty, 15 hours on a 10k star repo"
+• Or send JSON: `{"complexity_score": 7, "required_skills": ["Python"], "estimated_hours": 20, "repo_stars": 5000}`
 
-**Estimated Value:** ${min_value} - ${max_value}
-**Recommended:** ${estimated_value}
-**Hourly Rate:** ~${hourly_rate:.2f}/hour
+**What I need:**
+• Complexity level (1-10 or easy/moderate/hard)
+• Estimated hours
+• Skills required (optional)
+• Repository stars (optional)""")],
+                timestamp=datetime.now(),
+                msg_id=msg.msg_id
+            ))
+            return
 
-**Breakdown:**
-• Base (complexity): ${base_value}
-• Tech multiplier: {tech_multiplier}x {"(premium skills)" if has_premium else ""}
-• Popularity multiplier: {pop_multiplier}x
+        ctx.logger.info(f"Detected: complexity={complexity_score}, skills={required_skills}, hours={estimated_hours}, stars={repo_stars}")
 
-**Tier:** {_get_bounty_tier(estimated_value)}
-
-💡 **Recommendation:**
-"""
-        if hourly_rate >= 15:
-            response += f"Excellent value at ${hourly_rate:.2f}/hour!"
-        elif hourly_rate >= 10:
-            response += f"Good value at ${hourly_rate:.2f}/hour"
-        else:
-            response += f"Consider negotiating - ${hourly_rate:.2f}/hour is below market"
+        # Use MeTTa AI for intelligent bounty estimation
+        response = bounty_rag.generate_intelligent_response(
+            complexity_score=complexity_score,
+            skills=required_skills,
+            hours=estimated_hours,
+            repo_stars=repo_stars
+        )
 
         await ctx.send(sender, ChatMessage(
             content=[TextContent(text=response.strip())],
@@ -186,95 +219,57 @@ class BountyEstimateResponse(Model):
 
 @agent.on_rest_post("/api/query", BountyEstimateRequest, BountyEstimateResponse)
 async def handle_rest_query(ctx: Context, req: BountyEstimateRequest) -> BountyEstimateResponse:
-    """REST endpoint for orchestrator to query this agent"""
+    """REST endpoint for orchestrator to query this agent - INTELLIGENT RAG with MeTTa"""
 
-    ctx.logger.info(f"REST: Estimating bounty - Complexity: {req.complexity_score}, Hours: {req.estimated_hours}")
+    ctx.logger.info(f"REST: Intelligent RAG bounty estimation - Complexity: {req.complexity_score}, Hours: {req.estimated_hours}")
 
-    # Use shared KB for complexity assessment
-    complexity_level = shared_kb.query_complexity_level(req.complexity_score)
+    # 🔍 STEP 1: RAG RETRIEVAL - Search for similar bounty estimates in Supabase
+    ctx.logger.info(f"🔍 RAG RETRIEVAL: Searching for similar bounty estimates...")
+    historical_data = await supabase_client.search_similar_bounty_estimates(
+        complexity_score=req.complexity_score,
+        required_skills=req.required_skills,
+        estimated_hours=req.estimated_hours,
+        limit=5
+    )
+    ctx.logger.info(f"✅ Found {len(historical_data)} similar bounty estimates in knowledge base")
 
-    # Base rates by complexity
-    base_rates = {
-        "trivial": 25,
-        "easy": 50,
-        "moderate": 100,
-        "hard": 200,
-        "very-hard": 400
-    }
+    # 🧠 STEP 2: RAG AUGMENTATION - Use MeTTa AI + historical data for intelligent estimation
+    response = bounty_rag.generate_intelligent_response(
+        complexity_score=req.complexity_score,
+        skills=req.required_skills,
+        hours=req.estimated_hours,
+        repo_stars=req.repo_stars,
+        historical_data=historical_data  # ← RAG historical data!
+    )
 
-    base_value = base_rates.get(complexity_level, 100)
+    # Get detailed estimation for response fields
+    estimate = bounty_rag.calculate_intelligent_estimate(
+        complexity_score=req.complexity_score,
+        skills=req.required_skills,
+        hours=req.estimated_hours,
+        repo_stars=req.repo_stars
+    )
 
-    # Adjust by hours
-    value_by_hours = req.estimated_hours * 10  # $10/hour base
-
-    # Adjust by tech stack (some skills worth more)
-    premium_skills = ["Rust", "Go", "Solidity", "Kotlin", "Swift"]
-    has_premium = any(skill in premium_skills for skill in req.required_skills)
-    tech_multiplier = 1.3 if has_premium else 1.0
-
-    # Adjust by repo popularity
-    pop_multiplier = 1.0
-    if req.repo_stars > 10000:
-        pop_multiplier = 1.5
-    elif req.repo_stars > 1000:
-        pop_multiplier = 1.2
-
-    # Calculate final estimate
-    estimated_value = int(base_value * tech_multiplier * pop_multiplier)
-    min_value = int(estimated_value * 0.8)
-    max_value = int(estimated_value * 1.3)
-
-    # Calculate hourly rate
-    hourly_rate = estimated_value / req.estimated_hours if req.estimated_hours > 0 else 0
-
-    # Get tier
-    tier = _get_bounty_tier(estimated_value)
-
-    response = f"""💰 **Bounty Estimation**
-
-**Complexity:** {complexity_level.title()} ({req.complexity_score}/10)
-**Estimated Time:** ~{req.estimated_hours} hours
-**Repository:** {req.repo_stars} stars
-
-**Estimated Value:** ${min_value} - ${max_value}
-**Recommended:** ${estimated_value}
-**Hourly Rate:** ~${hourly_rate:.2f}/hour
-
-**Breakdown:**
-• Base (complexity): ${base_value}
-• Tech multiplier: {tech_multiplier}x {"(premium skills)" if has_premium else ""}
-• Popularity multiplier: {pop_multiplier}x
-
-**Tier:** {tier}
-
-💡 **Recommendation:**
-"""
-    if hourly_rate >= 15:
-        response += f"Excellent value at ${hourly_rate:.2f}/hour!"
-    elif hourly_rate >= 10:
-        response += f"Good value at ${hourly_rate:.2f}/hour"
-    else:
-        response += f"Consider negotiating - ${hourly_rate:.2f}/hour is below market"
-
-    # Store bounty estimation pattern in Supabase for RAG
+    # 💾 STEP 3: RAG STORAGE - Store new bounty pattern in Supabase for future learning
+    ctx.logger.info(f"💾 RAG STORAGE: Saving new bounty pattern to knowledge base...")
     asyncio.create_task(supabase_client.store_bounty_estimation_pattern(
         agent_id=agent.address,
         complexity_score=req.complexity_score,
         required_skills=req.required_skills,
         estimated_hours=req.estimated_hours,
-        estimated_value=estimated_value,
-        hourly_rate=hourly_rate,
-        tier=tier,
+        estimated_value=estimate['estimated_value'],
+        hourly_rate=estimate['hourly_rate'],
+        tier=estimate['tier'],
         repo_stars=req.repo_stars
     ))
 
     return BountyEstimateResponse(
         response=response,
-        estimated_value=estimated_value,
-        min_value=min_value,
-        max_value=max_value,
-        hourly_rate=hourly_rate,
-        tier=tier
+        estimated_value=estimate['estimated_value'],
+        min_value=estimate['min_value'],
+        max_value=estimate['max_value'],
+        hourly_rate=estimate['hourly_rate'],
+        tier=estimate['tier']
     )
 
 
