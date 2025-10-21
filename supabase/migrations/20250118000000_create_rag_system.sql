@@ -18,7 +18,9 @@
 CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA extensions;
 
 -- Enable pg_cron for scheduled tasks (marking expired repos)
-CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA extensions;
+-- Note: pg_cron may not be available in all Supabase tiers
+-- Consider using Supabase Edge Functions with cron triggers as alternative
+CREATE EXTENSION IF NOT EXISTS pg_cron;
 
 
 -- ============================================================
@@ -190,6 +192,7 @@ COMMENT ON COLUMN public.file_metadata.file_hash IS 'SHA256 hash for detecting c
 -- TABLE 4: CODE_CHUNKS
 -- ============================================================
 -- Stores code chunks extracted from files (N chunks per file)
+-- Note: file_hash is stored in file_metadata table to avoid redundancy
 
 CREATE TABLE public.code_chunks (
   chunk_id TEXT PRIMARY KEY,                -- "repo_file_func_hash"
@@ -197,7 +200,6 @@ CREATE TABLE public.code_chunks (
   -- Relationships
   repo_id UUID NOT NULL REFERENCES public.repositories(id) ON DELETE CASCADE,
   file_path TEXT NOT NULL,
-  file_hash TEXT NOT NULL,                  -- Same as file_metadata.file_hash
 
   -- Chunk content
   code TEXT NOT NULL,
@@ -217,20 +219,19 @@ CREATE TABLE public.code_chunks (
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
 
-  -- Foreign key (optional, for referential integrity)
+  -- Foreign key (links to file_metadata for hash-based change detection)
   FOREIGN KEY (repo_id, file_path) REFERENCES public.file_metadata(repo_id, file_path) ON DELETE CASCADE
 );
 
 -- Indexes
 CREATE INDEX idx_chunks_repo_id ON public.code_chunks(repo_id);
 CREATE INDEX idx_chunks_file_path ON public.code_chunks(file_path);
-CREATE INDEX idx_chunks_file_hash ON public.code_chunks(file_hash);
 CREATE INDEX idx_chunks_type ON public.code_chunks(chunk_type);
 CREATE INDEX idx_chunks_name ON public.code_chunks(name) WHERE name IS NOT NULL;
 
 -- Comments
 COMMENT ON TABLE public.code_chunks IS 'Code chunks (functions, classes, files) ready for embedding';
-COMMENT ON COLUMN public.code_chunks.file_hash IS 'Links to file_metadata for incremental updates';
+COMMENT ON COLUMN public.code_chunks.file_path IS 'Links to file_metadata via foreign key for hash-based incremental updates';
 
 
 -- ============================================================
@@ -586,16 +587,15 @@ ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
 -- ------------------------------------------------------------
 -- RLS: repositories
 -- All users can view indexed repos (they're public!)
--- Only service role can modify
+-- Service role automatically bypasses RLS in Supabase
 -- ------------------------------------------------------------
 
 CREATE POLICY "Anyone can view ready repositories"
   ON public.repositories FOR SELECT
   USING (status = 'ready');
 
-CREATE POLICY "Service role can manage repositories"
-  ON public.repositories FOR ALL
-  USING (auth.role() = 'service_role');
+-- Note: Service role automatically bypasses RLS in Supabase
+-- No explicit policy needed for service_role
 
 
 -- ------------------------------------------------------------
@@ -623,32 +623,26 @@ CREATE POLICY "Users can delete their own repo selections"
 -- ------------------------------------------------------------
 -- RLS: file_metadata, code_chunks, embeddings
 -- Public read (users can search across all indexed repos)
--- Service role only for writes
+-- Service role automatically bypasses RLS for writes
 -- ------------------------------------------------------------
 
 CREATE POLICY "Anyone can view file metadata"
   ON public.file_metadata FOR SELECT
   USING (true);
 
-CREATE POLICY "Service role can manage file metadata"
-  ON public.file_metadata FOR ALL
-  USING (auth.role() = 'service_role');
+-- Note: Service role automatically bypasses RLS in Supabase
 
 CREATE POLICY "Anyone can view code chunks"
   ON public.code_chunks FOR SELECT
   USING (true);
 
-CREATE POLICY "Service role can manage code chunks"
-  ON public.code_chunks FOR ALL
-  USING (auth.role() = 'service_role');
+-- Note: Service role automatically bypasses RLS in Supabase
 
 CREATE POLICY "Anyone can view embeddings"
   ON public.embeddings FOR SELECT
   USING (true);
 
-CREATE POLICY "Service role can manage embeddings"
-  ON public.embeddings FOR ALL
-  USING (auth.role() = 'service_role');
+-- Note: Service role automatically bypasses RLS in Supabase
 
 
 -- ------------------------------------------------------------
@@ -673,14 +667,25 @@ CREATE POLICY "Users can delete their own chat messages"
 -- SCHEDULED JOBS (pg_cron)
 -- ============================================================
 
--- Mark expired repos daily at 3 AM UTC
-SELECT cron.schedule(
-  'mark-expired-repos-daily',
-  '0 3 * * *',  -- Every day at 3 AM
-  $$SELECT public.mark_expired_repos()$$
-);
+-- Check if pg_cron is available before scheduling
+DO $pg_cron_check$
+BEGIN
+  -- Only schedule if pg_cron is installed
+  IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+    -- Mark expired repos daily at 3 AM UTC
+    PERFORM cron.schedule(
+      'mark-expired-repos-daily',
+      '0 3 * * *',  -- Every day at 3 AM
+      'SELECT public.mark_expired_repos()'
+    );
+    RAISE NOTICE '⏰ Cron job scheduled: mark_expired_repos (daily 3 AM UTC)';
+  ELSE
+    RAISE WARNING 'pg_cron extension is not available. Scheduled jobs will not work. Consider using Supabase Edge Functions with cron triggers instead.';
+  END IF;
+END $pg_cron_check$;
 
-COMMENT ON EXTENSION pg_cron IS 'Scheduled task: mark_expired_repos() runs daily at 3 AM UTC';
+-- Note: If pg_cron is not available, consider using Supabase Edge Functions
+-- with scheduled triggers as an alternative approach
 
 
 -- ============================================================
@@ -722,9 +727,9 @@ GRANT EXECUTE ON FUNCTION public.get_user_selected_repos TO authenticated;
 GRANT EXECUTE ON FUNCTION public.search_similar_chunks TO authenticated;
 GRANT EXECUTE ON FUNCTION public.update_repo_interaction TO authenticated;
 
--- Service role gets full access
-GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
-GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO service_role;
+-- Note: Service role in Supabase already has full access
+-- These grants are redundant but won't cause issues
+-- Kept for explicit documentation of intended permissions
 
 
 -- ============================================================

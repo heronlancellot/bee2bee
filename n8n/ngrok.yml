@@ -1,7 +1,8 @@
 version: 2
+authtoken: ${NGROK_AUTHTOKEN}
 log_level: debug
 tunnels:
   n8n:
     proto: http
     addr: n8n:5678
-    domain: unverified-virgil-orinasally.ngrok-free.dev
+
