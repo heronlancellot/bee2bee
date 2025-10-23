@@ -1,0 +1,15 @@
+# uAgents framework
+uagents==0.13.0
+uagents-core==0.1.4
+
+# MeTTa reasoning engine
+hyperon==0.1.12
+
+# HTTP requests
+requests==2.31.0
+
+# Environment variables
+python-dotenv==1.0.0
+
+# Optional: Enhanced matching
+# openai==1.6.1
