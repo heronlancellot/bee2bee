@@ -15,6 +15,8 @@ import { Label } from "@/components/ui/label";
 import { HexagonBackground } from "@/components/ui/hexagon-background";
 import { OnboardingProgress } from "@/components/onboarding-progress";
 import { useAuth } from "@/integrations/supabase/hooks/useAuth";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { Loader2 } from "lucide-react";
 
 const motivations = [
   { id: "contribute", label: "I want to contribute to open source" },
@@ -37,8 +39,10 @@ const experienceLevels = [
 export default function OnboardingPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { upsertProfile } = useUserProfile();
   const [selectedMotivations, setSelectedMotivations] = useState<string[]>([]);
   const [experienceLevel, setExperienceLevel] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
 
   // Extract username from user metadata
   const username = user?.user_metadata?.user_name || user?.user_metadata?.preferred_username || user?.email?.split('@')[0] || 'there';
@@ -49,10 +53,23 @@ export default function OnboardingPage() {
     );
   };
 
-  const handleContinue = () => {
-    // TODO: Save preferences to backend
-    console.log({ motivations: selectedMotivations, experienceLevel });
-    router.push("/onboarding/interests");
+  const handleContinue = async () => {
+    setIsSaving(true);
+    try {
+      // Save motivations and experience level to profile
+      await upsertProfile({
+        motivations: selectedMotivations,
+        experience_level: experienceLevel,
+      });
+
+      router.push("/onboarding/interests");
+    } catch (error) {
+      console.error("Error saving onboarding data:", error);
+      // Still continue even if save fails
+      router.push("/onboarding/interests");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSkip = () => {
@@ -148,15 +165,24 @@ export default function OnboardingPage() {
               <Button
                 variant="ghost"
                 onClick={handleSkip}
+                disabled={isSaving}
                 className="text-muted-foreground transition-colors hover:bg-transparent hover:text-primary"
               >
                 Skip this step
               </Button>
               <Button
                 onClick={handleContinue}
+                disabled={isSaving}
                 className="bg-primary hover:bg-primary/90"
               >
-                Continue →
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Continue →"
+                )}
               </Button>
             </div>
           </CardContent>

@@ -28,58 +28,58 @@ import {
 } from "@/components/ui/sidebar"
 import Link from "next/link"
 import { useTheme } from "next-themes"
+import { useUserProfile } from "@/hooks/useUserProfile"
+import { useAuth } from "@/integrations/supabase/hooks/useAuth"
 // import GlareHover from "@/components/GlareHover" // TODO: missing component
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+const navMainData = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: LayoutDashboard,
   },
-  teams: [
-    {
-      name: "NectarDAO",
-      logo: Bot,
-      plan: "AI-Powered Matching",
-    },
-  ],
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: LayoutDashboard,
-    },
-    {
-      title: "My Profile",
-      url: "/profile",
-      icon: User,
-      items: [
-        {
-          title: "Overview",
-          url: "/profile",
-        },
-        {
-          title: "Activity",
-          url: "/profile/activity",
-        },
-        {
-          title: "Contributions",
-          url: "/profile/contributions",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "My Repositories",
-      url: "/repos",
-      icon: BookMarked,
-    },
-  ],
-}
+  {
+    title: "My Profile",
+    url: "/profile",
+    icon: User,
+    items: [
+      {
+        title: "Overview",
+        url: "/profile",
+      },
+      {
+        title: "Activity",
+        url: "/profile/activity",
+      },
+      {
+        title: "Contributions",
+        url: "/profile/contributions",
+      },
+    ],
+  },
+];
+
+const projectsData = [
+  {
+    name: "My Repositories",
+    url: "/repos",
+    icon: BookMarked,
+  },
+];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { state } = useSidebar()
+  const { profile } = useUserProfile()
+  const { user } = useAuth()
+
+  // Build teams data from profile
+  const teamsData = [
+    {
+      name: profile?.github_username || user?.user_metadata?.user_name || "User",
+      logo: Bot,
+      plan: "AI-Powered Matching",
+    },
+  ];
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -88,7 +88,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       {/* Fixed Header Section */}
       <SidebarHeader className="shrink-0">
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={teamsData} />
 
         {/* New Chat Button - Fixed */}
         <SidebarGroup className="px-2 pt-2 pb-2">
@@ -120,8 +120,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       {/* Scrollable Content */}
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavMain items={navMainData} />
+        <NavProjects projects={projectsData} />
       </SidebarContent>
 
       <SidebarRail />
