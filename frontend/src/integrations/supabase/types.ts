@@ -19,30 +19,42 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string | null
+          experience_level: string | null
           full_name: string | null
           github_id: number | null
           github_username: string | null
           id: string
+          interests: Json | null
+          motivations: Json | null
+          selected_repositories: Json | null
           updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
+          experience_level?: string | null
           full_name?: string | null
           github_id?: number | null
           github_username?: string | null
           id: string
+          interests?: Json | null
+          motivations?: Json | null
+          selected_repositories?: Json | null
           updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
+          experience_level?: string | null
           full_name?: string | null
           github_id?: number | null
           github_username?: string | null
           id?: string
+          interests?: Json | null
+          motivations?: Json | null
+          selected_repositories?: Json | null
           updated_at?: string | null
         }
         Relationships: []

@@ -19,7 +19,7 @@ import * as SiIcons from "react-icons/si";
 import { useAuth } from "@/integrations/supabase/hooks/useAuth";
 import { useGitHubRepositories } from "@/hooks/useGitHubRepositories";
 import { completeOnboarding } from "@/lib/onboarding";
-import { supabase } from "@/integrations/supabase/client";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 const languageIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   Python: SiIcons.SiPython,
@@ -46,6 +46,7 @@ export default function AnalysisPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { repositories, user: githubUser, loading: githubLoading } = useGitHubRepositories();
+  const { upsertProfile } = useUserProfile();
   const [currentStep, setCurrentStep] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [selectedRepos, setSelectedRepos] = useState<number[]>([]);
@@ -104,7 +105,7 @@ export default function AnalysisPage() {
   const handleContinue = async () => {
     setIsSaving(true);
     try {
-      // Save selected repositories to user metadata
+      // Prepare selected repository data
       const selectedRepoData = repositories
         .filter((repo) => selectedRepos.includes(repo.id))
         .map((repo) => ({
@@ -117,23 +118,24 @@ export default function AnalysisPage() {
           stars: repo.stargazers_count,
         }));
 
-      // Update user metadata with selected repositories
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (authUser) {
-        await supabase.auth.updateUser({
-          data: {
-            selected_repositories: selectedRepoData,
-          },
-        });
-      }
+      // Save profile with GitHub data and selected repositories
+      await upsertProfile({
+        full_name: githubUser?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || null,
+        avatar_url: githubUser?.avatar_url || user?.user_metadata?.avatar_url || null,
+        github_id: githubUser?.id || null,
+        github_username: githubUser?.login || user?.user_metadata?.user_name || user?.user_metadata?.preferred_username || null,
+        selected_repositories: selectedRepoData,
+      });
 
       // Mark onboarding as complete
       await completeOnboarding();
 
-      // Redirect to dashboard
-      router.push("/dashboard");
+      // Redirect to chat
+      router.push("/chat");
     } catch (error) {
-      console.error("Error saving repositories:", error);
+      console.error("Error saving profile:", error);
+      // Still redirect even if save fails
+      router.push("/chat");
     } finally {
       setIsSaving(false);
     }

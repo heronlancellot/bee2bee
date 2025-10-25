@@ -8,85 +8,50 @@ import { RepoSelectorSidebar } from "@/components/repo-selector-sidebar"
 import { Repository, ChatMessage } from "@/types"
 import { supabase } from "@/integrations/supabase/client"
 import { Loader2 } from "lucide-react"
-
-// Mock data - replace with real API calls
-const mockRepositories: Repository[] = [
-  {
-    id: "1",
-    name: "nectar-frontend",
-    full_name: "nectardao/nectar-frontend",
-    owner: "nectardao",
-    description: "Next.js frontend for NectarDAO",
-    is_private: false,
-    is_favorite: true,
-    language: "TypeScript",
-    stars: 42,
-    indexed_at: new Date().toISOString(),
-    complexity_score: 65,
-    agent_id: "agent-1",
-    branches: ["main", "develop", "feature/chat-ui"],
-    default_branch: "main",
-  },
-  {
-    id: "2",
-    name: "nectar-agents",
-    full_name: "nectardao/nectar-agents",
-    owner: "nectardao",
-    description: "Fetch.ai agents for NectarDAO",
-    is_private: true,
-    is_favorite: true,
-    language: "Python",
-    stars: 28,
-    indexed_at: new Date().toISOString(),
-    complexity_score: 78,
-    agent_id: "agent-2",
-    branches: ["main", "develop"],
-    default_branch: "main",
-  },
-  {
-    id: "3",
-    name: "nectar-backend",
-    full_name: "nectardao/nectar-backend",
-    owner: "nectardao",
-    description: "n8n workflows and API",
-    is_private: true,
-    is_favorite: false,
-    language: "JavaScript",
-    stars: 15,
-    indexed_at: new Date().toISOString(),
-    complexity_score: 52,
-    agent_id: "agent-3",
-    branches: ["main", "staging", "develop"],
-    default_branch: "main",
-  },
-  {
-    id: "4",
-    name: "awesome-project",
-    full_name: "someuser/awesome-project",
-    owner: "someuser",
-    description: "An awesome open source project",
-    is_private: false,
-    is_favorite: false,
-    language: "Go",
-    stars: 1240,
-    indexed_at: new Date().toISOString(),
-    complexity_score: 84,
-    agent_id: "agent-4",
-    branches: ["main", "v2", "experimental"],
-    default_branch: "main",
-  },
-]
+import { useUserProfile, SelectedRepository } from "@/hooks/useUserProfile"
 
 export default function ChatPage() {
   const router = useRouter()
+  const { profile, loading: profileLoading } = useUserProfile()
   const [isAuthenticated, setIsAuthenticated] = React.useState(false)
   const [isCheckingAuth, setIsCheckingAuth] = React.useState(true)
-  const [repositories] = React.useState<Repository[]>(mockRepositories)
-  const [selectedRepos, setSelectedRepos] = React.useState<string[]>(
-    mockRepositories.map((repo) => repo.id)
-  )
+  const [repositories, setRepositories] = React.useState<Repository[]>([])
+  const [selectedRepos, setSelectedRepos] = React.useState<string[]>([])
   const [messages, setMessages] = React.useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = React.useState(false)
+
+  // Load repositories from profile
+  React.useEffect(() => {
+    if (profile && profile.selected_repositories) {
+      try {
+        const selectedRepos = profile.selected_repositories as unknown as SelectedRepository[];
+
+        // Convert selected repositories to Repository format
+        const repos: Repository[] = selectedRepos.map((repo) => ({
+          id: repo.id.toString(),
+          name: repo.name,
+          full_name: repo.full_name,
+          owner: repo.owner,
+          description: repo.description || "No description",
+          is_private: false,
+          is_favorite: false,
+          language: repo.language || "Unknown",
+          stars: repo.stars,
+          indexed_at: new Date().toISOString(),
+          complexity_score: 50,
+          agent_id: `agent-${repo.id}`,
+          branches: ["main"],
+          default_branch: "main",
+        }));
+
+        setRepositories(repos);
+        // Select all repos by default
+        setSelectedRepos(repos.map(r => r.id));
+      } catch (error) {
+        console.error("Error loading repositories from profile:", error);
+      }
+    }
+  }, [profile]);
 
   React.useEffect(() => {
     const checkAuth = async () => {
@@ -212,12 +177,14 @@ export default function ChatPage() {
     }
   }
 
-  // Show loading state while checking authentication
-  if (isCheckingAuth) {
+  // Show loading state while checking authentication or loading profile
+  if (isCheckingAuth || profileLoading) {
     return (
       <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6">
         <Loader2 className="h-12 w-12 animate-spin text-primary" aria-label="Loading" />
-        <p className="text-sm text-muted-foreground">Checking authentication...</p>
+        <p className="text-sm text-muted-foreground">
+          {isCheckingAuth ? "Checking authentication..." : "Loading your profile..."}
+        </p>
       </div>
     )
   }

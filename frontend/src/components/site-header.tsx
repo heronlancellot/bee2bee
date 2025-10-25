@@ -16,10 +16,15 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRef, useState, useEffect } from "react"
 import { SettingsDialog } from "@/components/settings-dialog"
+import { useUserProfile } from "@/hooks/useUserProfile"
+import { supabase } from "@/integrations/supabase/client"
+import { useRouter } from "next/navigation"
 
 export function SiteHeader() {
   const { theme, resolvedTheme, setTheme } = useTheme()
   const { state } = useSidebar()
+  const { profile, loading: profileLoading } = useUserProfile()
+  const router = useRouter()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [searchValue, setSearchValue] = useState("")
   const [mounted, setMounted] = useState(false)
@@ -36,12 +41,32 @@ export function SiteHeader() {
     ? (isCollapsed ? '/branding/gradient_logo_icon.svg' : '/branding/gradient_logo_dark_theme_big.svg')
     : (isCollapsed ? '/branding/gradient_logo_icon.svg' : '/branding/gradient_logo_light_theme_big.svg')
 
+  // User data from profile
+  const userDisplayName = profile?.full_name || profile?.github_username || "User"
+  const userInitials = userDisplayName
+    .split(" ")
+    .map(n => n[0])
+    .join("")
+    .toUpperCase()
+    .substring(0, 2)
+  const userAvatar = profile?.avatar_url || "/avatars/shadcn.jpg"
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut()
+      router.push("/login")
+    } catch (error) {
+      console.error("Error logging out:", error)
+    }
+  }
+
   const handleThemeToggle = async () => {
     if (!buttonRef.current) return
 
     const targetTheme = theme === 'dark' ? 'light' : 'dark'
 
     // Check if View Transitions API is supported
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!(document as any).startViewTransition) {
       setTheme(targetTheme)
       return
@@ -57,6 +82,7 @@ export function SiteHeader() {
     ) * 2
 
     // Create the transition
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const transition = (document as any).startViewTransition(async () => {
       setTheme(targetTheme)
     })
@@ -78,9 +104,8 @@ export function SiteHeader() {
           pseudoElement: '::view-transition-new(root)'
         }
       )
-    } catch (e) {
-      // Fallback if transition fails
-      console.log('Transition failed, falling back')
+    } catch {
+      // Fallback if transition fails - error intentionally ignored
     }
   }
 
@@ -186,11 +211,15 @@ export function SiteHeader() {
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 ml-2 pl-2 border-l border-border/50 dark:border-white/10 cursor-pointer hover:opacity-80 transition-opacity duration-200">
               <Avatar className="h-6 w-6">
-                <AvatarImage src="/avatars/shadcn.jpg" alt="User" />
-                <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-semibold">JD</AvatarFallback>
+                <AvatarImage src={userAvatar} alt={userDisplayName} />
+                <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-semibold">
+                  {profileLoading ? "..." : userInitials}
+                </AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
-                <span className="text-xs font-semibold leading-none">John Doe</span>
+                <span className="text-xs font-semibold leading-none">
+                  {profileLoading ? "Loading..." : userDisplayName}
+                </span>
                 <span className="text-[10px] text-muted-foreground leading-none mt-0.5">Free Plan</span>
               </div>
             </button>
@@ -206,7 +235,10 @@ export function SiteHeader() {
               Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-xs py-2 cursor-pointer text-destructive focus:text-destructive">
+            <DropdownMenuItem
+              className="text-xs py-2 cursor-pointer text-destructive focus:text-destructive"
+              onClick={handleLogout}
+            >
               <LogOut className="h-3.5 w-3.5 mr-2" />
               Logout
             </DropdownMenuItem>
