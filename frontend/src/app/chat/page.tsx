@@ -90,24 +90,42 @@ export default function ChatPage() {
 
   React.useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
+      try {
+        console.log("Chat: Checking authentication...")
+        const { data: { session }, error } = await supabase.auth.getSession()
 
-      if (!session?.user) {
-        // User is not authenticated, redirect to login
-        router.push("/login")
-      } else {
-        setIsAuthenticated(true)
+        if (error) {
+          console.error("Chat: Auth error:", error)
+          router.replace("/login")
+          return
+        }
+
+        console.log("Chat: Session:", session?.user?.email || "No session")
+
+        if (!session?.user) {
+          // User is not authenticated, redirect to login
+          console.log("Chat: No user, redirecting to login")
+          router.replace("/login")
+        } else {
+          console.log("Chat: User authenticated")
+          setIsAuthenticated(true)
+        }
+      } catch (err) {
+        console.error("Chat: Unexpected error:", err)
+        router.replace("/login")
+      } finally {
+        setIsCheckingAuth(false)
       }
-      setIsCheckingAuth(false)
     }
 
     checkAuth()
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session?.user) {
-        router.push("/login")
-      } else {
+      console.log("Chat: Auth state changed:", event, session?.user?.email || "No session")
+      if (!session?.user && event !== 'INITIAL_SESSION') {
+        router.replace("/login")
+      } else if (session?.user) {
         setIsAuthenticated(true)
       }
     })
