@@ -78,11 +78,11 @@ export function LoginForm({
 
       if (data) {
         toast.success("Welcome back!", {
-          description: "Redirecting to your dashboard...",
+          description: "Redirecting to chat...",
         });
         setEmail("");
         setPassword("");
-        router.push("/dashboard");
+        router.push("/chat");
       }
     },
     [email, password, signInWithEmail, router]
