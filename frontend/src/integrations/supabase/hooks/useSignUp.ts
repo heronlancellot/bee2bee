@@ -81,7 +81,7 @@ export function useSignUp() {
         provider: "github",
         options: {
           redirectTo: `${siteUrl}/auth/callback`,
-          scopes: "repo gist notifications read:user user:email",
+          scopes: "public_repo gist notifications read:user user:email",
         },
       });
       return result as any;
