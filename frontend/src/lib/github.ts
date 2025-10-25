@@ -21,6 +21,7 @@ export interface GitHubRepository {
 }
 
 export interface GitHubUser {
+  id: number;
   login: string;
   name: string | null;
   email: string | null;
