@@ -76,10 +76,11 @@ export function useSignUp() {
   const signInWithGithub = useCallback(async () => {
     return executeAuth(
       async () => {
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
         const result = await supabase.auth.signInWithOAuth({
           provider: 'github',
           options: {
-            redirectTo: `${window.location.origin}/auth/callback`,
+            redirectTo: `${siteUrl}/auth/callback`,
           },
         });
         return result as any;

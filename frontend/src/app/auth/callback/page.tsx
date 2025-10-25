@@ -82,8 +82,8 @@ export default function AuthCallbackPage() {
         }
 
         if (session?.user) {
-          // Successfully authenticated - redirect to onboarding
-          redirectToDestination("/onboarding");
+          // Successfully authenticated - redirect to chat
+          redirectToDestination("/chat");
         } else {
           setError("No active session found");
           redirectToLogin();

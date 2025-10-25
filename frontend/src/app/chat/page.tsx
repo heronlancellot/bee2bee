@@ -1,10 +1,13 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import { MainLayout } from "@/components/main-layout"
 import { ChatInterface } from "@/components/chat-interface"
 import { RepoSelectorSidebar } from "@/components/repo-selector-sidebar"
 import { Repository, ChatMessage } from "@/types"
+import { supabase } from "@/integrations/supabase/client"
+import { Loader2 } from "lucide-react"
 
 // Mock data - replace with real API calls
 const mockRepositories: Repository[] = [
@@ -75,12 +78,44 @@ const mockRepositories: Repository[] = [
 ]
 
 export default function ChatPage() {
+  const router = useRouter()
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = React.useState(true)
   const [repositories] = React.useState<Repository[]>(mockRepositories)
   const [selectedRepos, setSelectedRepos] = React.useState<string[]>(
     mockRepositories.map((repo) => repo.id)
   )
   const [messages, setMessages] = React.useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = React.useState(false)
+
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session?.user) {
+        // User is not authenticated, redirect to login
+        router.push("/login")
+      } else {
+        setIsAuthenticated(true)
+      }
+      setIsCheckingAuth(false)
+    }
+
+    checkAuth()
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session?.user) {
+        router.push("/login")
+      } else {
+        setIsAuthenticated(true)
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [router])
 
   const handleRepoToggle = (repoId: string) => {
     setSelectedRepos((prev) =>
@@ -157,6 +192,21 @@ export default function ChatPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Show loading state while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" aria-label="Loading" />
+        <p className="text-sm text-muted-foreground">Checking authentication...</p>
+      </div>
+    )
+  }
+
+  // Only render the chat if authenticated
+  if (!isAuthenticated) {
+    return null
   }
 
   return (

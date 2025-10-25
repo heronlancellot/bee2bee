@@ -1,22 +1,34 @@
-import { MainLayout } from "@/components/main-layout"
-import { ChartAreaInteractive } from "@/components/chart-area-interactive"
-import { DataTable } from "@/components/data-table"
-import { SectionCards } from "@/components/section-cards"
+"use client"
 
-import data from "./dashboard/data.json"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { supabase } from "@/integrations/supabase/client"
+import { Loader2 } from "lucide-react"
 
 export default function Page() {
+  const router = useRouter()
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (session?.user) {
+        // User is authenticated, redirect to chat
+        router.push("/chat")
+      } else {
+        // User is not authenticated, redirect to login
+        router.push("/login")
+      }
+    }
+
+    checkAuth()
+  }, [router])
+
+  // Show loading state while checking auth
   return (
-    <MainLayout>
-      <div className="@container/main flex flex-1 flex-col gap-2">
-        <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-          <SectionCards />
-          <div className="px-4 lg:px-6">
-            <ChartAreaInteractive />
-          </div>
-          <DataTable data={data} />
-        </div>
-      </div>
-    </MainLayout>
+    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6">
+      <Loader2 className="h-12 w-12 animate-spin text-primary" aria-label="Loading" />
+      <p className="text-sm text-muted-foreground">Loading...</p>
+    </div>
   )
 }
