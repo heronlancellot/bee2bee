@@ -82,8 +82,19 @@ export default function AuthCallbackPage() {
         }
 
         if (session?.user) {
-          // Successfully authenticated - redirect to chat
-          redirectToDestination("/chat");
+          // Check if user has completed onboarding
+          const hasCompletedOnboarding = session.user.user_metadata?.onboarding_completed === true;
+
+          // Check if user has GitHub OAuth provider
+          const hasGithubProvider = session.user.app_metadata?.providers?.includes('github');
+
+          // If GitHub login and hasn't completed onboarding, redirect to onboarding
+          // Otherwise, redirect to chat
+          if (hasGithubProvider && !hasCompletedOnboarding) {
+            redirectToDestination("/onboarding");
+          } else {
+            redirectToDestination("/chat");
+          }
         } else {
           setError("No active session found");
           redirectToLogin();

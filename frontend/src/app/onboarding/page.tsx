@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { HexagonBackground } from "@/components/ui/hexagon-background";
 import { OnboardingProgress } from "@/components/onboarding-progress";
+import { useAuth } from "@/integrations/supabase/hooks/useAuth";
 
 const motivations = [
   { id: "contribute", label: "I want to contribute to open source" },
@@ -35,8 +36,12 @@ const experienceLevels = [
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [selectedMotivations, setSelectedMotivations] = useState<string[]>([]);
   const [experienceLevel, setExperienceLevel] = useState<string>("");
+
+  // Extract username from user metadata
+  const username = user?.user_metadata?.user_name || user?.user_metadata?.preferred_username || user?.email?.split('@')[0] || 'there';
 
   const handleMotivationToggle = (id: string) => {
     setSelectedMotivations((prev) =>
@@ -65,7 +70,7 @@ export default function OnboardingPage() {
 
         <Card className="flex-1 flex flex-col overflow-hidden dark:bg-[hsl(var(--surface-elevated))]">
           <CardHeader className="text-center shrink-0">
-            <CardTitle className="text-xl md:text-2xl">Welcome, @username! 👋</CardTitle>
+            <CardTitle className="text-xl md:text-2xl">Welcome, @{username}! 👋</CardTitle>
             <CardDescription className="text-sm">
               We&apos;re analyzing your GitHub profile right now. While we do that,
               tell us a bit about yourself.
