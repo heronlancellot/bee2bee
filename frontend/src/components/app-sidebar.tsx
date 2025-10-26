@@ -1,20 +1,12 @@
-"use client"
+/* eslint-disable @next/next/no-img-element */
+"use client";
 
-import * as React from "react"
-import {
-  BookMarked,
-  MessageSquare,
-  User,
-  Settings2,
-  Bot,
-  Plus,
-  LayoutDashboard,
-  History,
-} from "lucide-react"
+import * as React from "react";
+import { BookMarked, User, Bot } from "lucide-react";
 
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { TeamSwitcher } from "@/components/team-switcher"
+import { NavMain } from "@/components/nav-main";
+import { NavProjects } from "@/components/nav-projects";
+import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,
@@ -25,19 +17,17 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   useSidebar,
-} from "@/components/ui/sidebar"
-import Link from "next/link"
-import { useTheme } from "next-themes"
-import { useUserProfile } from "@/hooks/useUserProfile"
-import { useAuth } from "@/integrations/supabase/hooks/useAuth"
-// import GlareHover from "@/components/GlareHover" // TODO: missing component
+} from "@/components/ui/sidebar";
+import Link from "next/link";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useAuth } from "@/integrations/supabase/hooks/useAuth";
 
 const navMainData = [
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: LayoutDashboard,
-  },
+  // {
+  //   title: "Dashboard",
+  //   url: "/dashboard",
+  //   icon: LayoutDashboard,
+  // },
   {
     title: "My Profile",
     url: "/profile",
@@ -68,18 +58,21 @@ const projectsData = [
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { state } = useSidebar()
-  const { profile } = useUserProfile()
-  const { user } = useAuth()
+  const { state } = useSidebar();
+  const { profile } = useUserProfile();
+  const { user } = useAuth();
 
   // Build teams data from profile
   const teamsData = [
     {
-      name: profile?.github_username || user?.user_metadata?.user_name || "User",
+      name:
+        profile?.github_username || user?.user_metadata?.user_name || "User",
       logo: Bot,
       plan: "AI-Powered Matching",
     },
   ];
+
+  const isExpanded = state === "expanded";
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -91,18 +84,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher teams={teamsData} />
 
         {/* New Chat Button - Fixed */}
-        <SidebarGroup className="px-2 pt-2 pb-2">
+        <SidebarGroup className="p-0">
           <SidebarMenu>
-            <SidebarMenuItem className="list-none overflow-visible w-full">
+            <SidebarMenuItem className="w-full list-none overflow-visible">
               <SidebarMenuButton
                 asChild
                 tooltip="New Chat"
-                className="group relative h-8 w-full overflow-hidden bg-[hsl(var(--secondary-accent))] hover:bg-[hsl(var(--secondary-accent))]/80 active:bg-[hsl(var(--secondary-accent))] dark:bg-[hsl(var(--primary))] dark:hover:bg-[hsl(var(--primary))]/90 dark:active:bg-[hsl(var(--primary))] !text-white hover:!text-white active:!text-white transition-all duration-300 shadow-sm hover:shadow-md [&>*]:!text-white [&>*]:hover:!text-white [&>*]:active:!text-white"
+                className="group relative h-8 w-full overflow-hidden bg-[hsl(var(--secondary-accent))] !p-0 !text-white shadow-sm transition-all duration-300 hover:bg-[hsl(var(--secondary-accent))]/80 hover:!text-white hover:shadow-md active:bg-[hsl(var(--secondary-accent))] active:!text-white dark:bg-[hsl(var(--primary))] dark:hover:bg-[hsl(var(--primary))]/90 dark:active:bg-[hsl(var(--primary))] [&>*]:!text-white [&>*]:hover:!text-white [&>*]:active:!text-white"
               >
-                <Link href="/chat" className="relative w-full !text-white hover:!text-white active:!text-white">
+                <Link
+                  href="/chat"
+                  className={`relative flex w-full items-center gap-2 !p-0 !text-white hover:!text-white active:!text-white ${isExpanded ? "justify-center" : ""}`}
+                >
                   {/* Glare effect */}
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
+                  <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                    <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
                   </div>
 
                   <img
@@ -110,7 +106,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     alt="Chat"
                     className="h-4 w-4 flex-shrink-0 brightness-0 invert transition-all duration-300 group-hover:scale-110"
                   />
-                  <span className="text-sm font-medium relative z-10 !text-white">New Chat</span>
+                  <span className="relative z-10 text-sm font-medium !text-white">
+                    New Chat
+                  </span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -126,5 +124,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
