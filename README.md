@@ -42,6 +42,9 @@ repomind-ui/
 │   │   └── types/        # TypeScript type definitions
 │   └── public/           # Static assets
 ```
+<p align="center">
+  <img src="./docs/bee2bee-future-archtecture.png" alt="Project architecture diagram" width="900" />
+</p>
 
 ### Technology Stack
 
