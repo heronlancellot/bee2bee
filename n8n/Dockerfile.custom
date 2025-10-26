@@ -20,6 +20,8 @@ RUN apk add --no-cache python3 py3-pip git && \
         PyGithub \
         pydantic \
         python-dotenv \
-        inflection
+        inflection \
+        tiktoken \
+        numpy
 
 USER node
