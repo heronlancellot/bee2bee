@@ -42,7 +42,7 @@ bee2bee/
 ```
 
 <p align="center">
-  <img src="./docs/bee2bee_future_archtecture.png" alt="Project architecture diagram" width="900" />
+  <img src="./docs/architecture/bee2bee_future_architecture.png" alt="Project architecture diagram" width="900" />
 </p>
 
 ### Technology Stack
