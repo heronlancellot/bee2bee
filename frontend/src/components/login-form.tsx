@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSignUp } from "@/integrations/supabase/hooks/useSignUp";
 import { toast } from "sonner";
+import Link from "next/link";
 
 const GitHubIcon = memo(() => (
   <svg
@@ -48,12 +49,13 @@ export function LoginForm({
     setMounted(true);
   }, []);
 
-  const currentTheme = mounted ? (resolvedTheme || theme) : 'light';
+  const currentTheme = mounted ? resolvedTheme || theme : "light";
   const logoSrc = useMemo(
-    () => currentTheme === 'dark'
-      ? '/branding/gradient_logo_dark_theme.svg'
-      : '/branding/gradient_logo_light_theme.svg',
-    [currentTheme]
+    () =>
+      currentTheme === "dark"
+        ? "/branding/gradient_logo_dark_theme.svg"
+        : "/branding/gradient_logo_light_theme.svg",
+    [currentTheme],
   );
 
   const handleEmailLogin = useCallback(
@@ -85,7 +87,7 @@ export function LoginForm({
         router.push("/chat");
       }
     },
-    [email, password, signInWithEmail, router]
+    [email, password, signInWithEmail, router],
   );
 
   const handleGitHubLogin = useCallback(async () => {
@@ -102,13 +104,13 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="dark:bg-[hsl(var(--surface-elevated))]">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
+          <Link className="mb-4 flex cursor-pointer justify-center" href="/">
             <img
               src={logoSrc}
               alt="Bee2Bee"
               className="h-10 w-auto transition-opacity duration-300"
             />
-          </div>
+          </Link>
           <CardTitle className="text-xl">Welcome back</CardTitle>
           <CardDescription>Login to your Bee2Bee account</CardDescription>
         </CardHeader>
@@ -164,13 +166,13 @@ export function LoginForm({
                 </Button>
               </div>
               <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
-                <span className="relative z-10 bg-background dark:bg-[hsl(var(--surface-elevated))] px-2 text-muted-foreground">
+                <span className="relative z-10 bg-background px-2 text-muted-foreground dark:bg-[hsl(var(--surface-elevated))]">
                   Or continue with
                 </span>
               </div>
               <Button
                 variant="outline"
-                className="group h-10 w-full gap-2.5 rounded-lg border-2 border-border text-base font-medium text-[hsl(var(--secondary-accent))] dark:bg-white dark:text-[hsl(var(--secondary-accent))] transition-all duration-300 hover:border-[hsl(var(--secondary-accent))] hover:!bg-[hsl(var(--secondary-accent))] hover:!text-white hover:shadow-lg"
+                className="group h-10 w-full gap-2.5 rounded-lg border-2 border-border text-base font-medium text-[hsl(var(--secondary-accent))] transition-all duration-300 hover:border-[hsl(var(--secondary-accent))] hover:!bg-[hsl(var(--secondary-accent))] hover:!text-white hover:shadow-lg dark:bg-white dark:text-[hsl(var(--secondary-accent))]"
                 type="button"
                 onClick={handleGitHubLogin}
                 disabled={loading}
