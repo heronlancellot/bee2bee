@@ -8,6 +8,14 @@ config
 database.sqlite*
 nodes/
 git/
+crash.journal
 
 # Log files
 *.log
+
+# Workflows are tracked in workflows/ folder
+# Keep workflows/ folder but ignore its contents initially
+!workflows/
+!workflows/README.md
+custom/node_modules/*
+link-local-node.sh

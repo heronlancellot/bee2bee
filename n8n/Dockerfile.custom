@@ -1,0 +1,27 @@
+FROM n8nio/n8n:latest
+
+USER root
+
+# Install Python and dependencies for Bee2Bee Indexer node
+RUN apk add --no-cache python3 py3-pip git && \
+    ln -sf /usr/bin/python3 /usr/bin/python && \
+    pip3 install --break-system-packages --no-cache-dir \
+        tree-sitter \
+        tree-sitter-python \
+        tree-sitter-javascript \
+        tree-sitter-typescript \
+        tree-sitter-rust \
+        tree-sitter-go \
+        tree-sitter-java \
+        tree-sitter-c \
+        tree-sitter-cpp \
+        openai \
+        httpx \
+        PyGithub \
+        pydantic \
+        python-dotenv \
+        inflection \
+        tiktoken \
+        numpy
+
+USER node
