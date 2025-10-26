@@ -1,40 +1,54 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Github, Settings2, CreditCard, BarChart3, Check, Download, Search, ArrowUpDown, GitBranch, Star, X } from "lucide-react"
+import * as React from "react";
 import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { useAuth } from "@/integrations/supabase/hooks/useAuth"
-import { useLinkIdentity } from "@/integrations/supabase/hooks/useLinkIdentity"
-import { useRepositoryStore } from "@/store/repositories"
-import { toast } from "sonner"
+  Github,
+  Settings2,
+  CreditCard,
+  BarChart3,
+  Check,
+  Download,
+  Search,
+  ArrowUpDown,
+  GitBranch,
+  Star,
+  X,
+  BookMarked,
+  Loader2,
+} from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/integrations/supabase/hooks/useAuth";
+import { useLinkIdentity } from "@/integrations/supabase/hooks/useLinkIdentity";
+import { useRepositoryStore } from "@/store/repositories";
+import { toast } from "sonner";
+import { useGitHubRepositories } from "@/hooks/useGitHubRepositories";
 
-type SettingsSection = "github" | "preferences" | "plans" | "usage"
+type SettingsSection = "github" | "preferences" | "plans" | "usage";
 
 interface SettingsDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 interface SidebarSection {
-  label: string
+  label: string;
   items: {
-    id: SettingsSection
-    label: string
-    icon: any
-  }[]
+    id: SettingsSection;
+    label: string;
+    icon: any;
+  }[];
 }
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
-  const [activeSection, setActiveSection] = React.useState<SettingsSection>("github")
+  const [activeSection, setActiveSection] =
+    React.useState<SettingsSection>("github");
 
   const sections: SidebarSection[] = [
     {
@@ -72,14 +86,14 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         },
       ],
     },
-  ]
+  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl h-[85vh] max-h-[700px] p-0 gap-0 bg-background dark:bg-[hsl(var(--surface-elevated))]">
+      <DialogContent className="h-[85vh] max-h-[700px] max-w-5xl gap-0 bg-background p-0 dark:bg-[hsl(var(--surface-elevated))]">
         <div className="flex h-full overflow-hidden">
           {/* Sidebar */}
-          <div className="w-64 border-r dark:border-white/5 bg-muted/30 dark:bg-[hsl(var(--surface-elevated))] p-4 flex flex-col gap-5 overflow-y-auto">
+          <div className="flex w-64 flex-col gap-5 overflow-y-auto border-r bg-muted/30 p-4 dark:border-white/5 dark:bg-[hsl(var(--surface-elevated))]">
             {sections.map((section, sectionIndex) => (
               <div key={sectionIndex} className="space-y-1">
                 {/* Section Label */}
@@ -92,22 +106,22 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 {/* Section Items */}
                 <div className="space-y-0.5">
                   {section.items.map((item) => {
-                    const Icon = item.icon
+                    const Icon = item.icon;
                     return (
                       <button
                         key={item.id}
                         onClick={() => setActiveSection(item.id)}
                         className={cn(
-                          "flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm transition-all duration-200",
+                          "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200",
                           activeSection === item.id
-                            ? "bg-secondary dark:bg-muted text-foreground shadow-sm font-semibold border border-border/50 dark:border-border"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/40 dark:hover:bg-muted/60"
+                            ? "border border-border/50 bg-secondary font-semibold text-foreground shadow-sm dark:border-border dark:bg-muted"
+                            : "text-muted-foreground hover:bg-muted/40 hover:text-foreground dark:hover:bg-muted/60",
                         )}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
                         <span className="font-medium">{item.label}</span>
                       </button>
-                    )
+                    );
                   })}
                 </div>
               </div>
@@ -126,19 +140,28 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 function IntegrationsContent() {
-  const { user } = useAuth()
-  const { linkGitHub, unlinkIdentity, loading: linkLoading } = useLinkIdentity()
+  const { user } = useAuth();
+  const {
+    linkGitHub,
+    unlinkIdentity,
+    loading: linkLoading,
+  } = useLinkIdentity();
+
+  // Get GitHub repos
+  const { repositories: githubRepos, loading: githubLoading } = useGitHubRepositories();
 
   // Store state
-  const repositories = useRepositoryStore((state) => state.repositories)
+  const storeRepositories = useRepositoryStore((state) => state.repositories);
 
-  const [searchRepo, setSearchRepo] = React.useState("")
+  const [searchRepo, setSearchRepo] = React.useState("");
+  const [showRepoSelector, setShowRepoSelector] = React.useState(false);
+  const [localSelectedRepos, setLocalSelectedRepos] = React.useState<number[]>([]);
 
-  // Repository handlers - use stable callbacks
+  // Repository handlers
   const handleRemoveRepo = React.useCallback((repoId: string) => {
     useRepositoryStore.getState().removeRepository(repoId);
   }, []);
@@ -147,64 +170,101 @@ function IntegrationsContent() {
     useRepositoryStore.getState().toggleFavorite(repoId);
   }, []);
 
+  const handleToggleGitHubRepo = (repoId: number) => {
+    setLocalSelectedRepos((prev) =>
+      prev.includes(repoId)
+        ? prev.filter((id) => id !== repoId)
+        : [...prev, repoId]
+    );
+  };
+
+  const handleAddRepositories = () => {
+    const selectedRepoData = githubRepos.filter((r) =>
+      localSelectedRepos.includes(r.id)
+    );
+    selectedRepoData.forEach((repo) => {
+      useRepositoryStore.getState().addRepository({
+        id: repo.id.toString(),
+        name: repo.name,
+        full_name: repo.full_name,
+        owner: repo.owner.login,
+        description: repo.description,
+        is_private: repo.private,
+        is_favorite: false,
+        language: repo.language,
+        stars: repo.stargazers_count,
+        indexed_at: null,
+        complexity_score: null,
+        agent_id: null,
+      });
+    });
+    setLocalSelectedRepos([]);
+    setShowRepoSelector(false);
+    toast.success(`Added ${selectedRepoData.length} repositories!`);
+  };
+
   // DEV BYPASS: Force GitHub to be connected in development
   // Use a stable mock object to prevent infinite re-renders
   const devBypassIdentity = React.useRef({
-    id: 'dev-bypass-id',
-    user_id: 'dev-bypass-user',
-    identity_id: 'dev-bypass-identity-id',
-    provider: 'github',
+    id: "dev-bypass-id",
+    user_id: "dev-bypass-user",
+    identity_id: "dev-bypass-identity-id",
+    provider: "github",
     identity_data: {},
     last_sign_in_at: new Date().toISOString(),
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  })
+    updated_at: new Date().toISOString(),
+  });
 
   const githubIdentity = React.useMemo(() => {
-    if (process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === 'true') {
-      return devBypassIdentity.current
+    if (process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === "true") {
+      return devBypassIdentity.current;
     }
-    return user?.identities?.find((identity) => identity.provider === 'github')
-  }, [user?.identities])
+    return user?.identities?.find((identity) => identity.provider === "github");
+  }, [user?.identities]);
 
-  const githubConnected = !!githubIdentity
+  const githubConnected = !!githubIdentity;
 
   const handleConnectGitHub = React.useCallback(async () => {
-    const { error } = await linkGitHub()
+    const { error } = await linkGitHub();
     if (error) {
-      toast.error("Failed to connect GitHub", { description: error })
+      toast.error("Failed to connect GitHub", { description: error });
     } else {
-      toast.success("GitHub connected successfully!")
+      toast.success("GitHub connected successfully!");
     }
-  }, [linkGitHub])
+  }, [linkGitHub]);
 
   const handleDisconnectGitHub = React.useCallback(async () => {
-    if (!githubIdentity) return
+    if (!githubIdentity) return;
 
     // DEV BYPASS: Skip actual disconnection in development
-    if (process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === 'true') {
-      toast.info("Dev Mode", { description: "GitHub disconnect bypassed in development mode" })
-      return
+    if (process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === "true") {
+      toast.info("Dev Mode", {
+        description: "GitHub disconnect bypassed in development mode",
+      });
+      return;
     }
 
-    const { error } = await unlinkIdentity(githubIdentity)
+    const { error } = await unlinkIdentity(githubIdentity);
     if (error) {
-      toast.error("Failed to disconnect GitHub", { description: error })
+      toast.error("Failed to disconnect GitHub", { description: error });
     } else {
-      toast.success("GitHub disconnected successfully!")
+      toast.success("GitHub disconnected successfully!");
     }
-  }, [githubIdentity, unlinkIdentity])
+  }, [githubIdentity, unlinkIdentity]);
 
   const filteredRepos = React.useMemo(
-    () => repositories.filter(r =>
-      r.name.toLowerCase().includes(searchRepo.toLowerCase()) ||
-      r.owner.toLowerCase().includes(searchRepo.toLowerCase())
-    ),
-    [repositories, searchRepo]
-  )
+    () =>
+      storeRepositories.filter(
+        (r) =>
+          r.name.toLowerCase().includes(searchRepo.toLowerCase()) ||
+          r.owner.toLowerCase().includes(searchRepo.toLowerCase()),
+      ),
+    [storeRepositories, searchRepo],
+  );
 
   return (
-    <div className="space-y-8 max-w-3xl">
+    <div className="max-w-3xl space-y-8">
       {/* Header */}
       <div className="space-y-2">
         <h2 className="text-2xl font-bold tracking-tight">GitHub</h2>
@@ -217,12 +277,12 @@ function IntegrationsContent() {
 
       {/* Connection Card */}
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Connection
         </h3>
-        <div className="flex items-center justify-between p-6 rounded-xl border dark:border-white/10 bg-card dark:bg-[hsl(var(--surface-elevated))]/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow duration-200">
+        <div className="flex items-center justify-between rounded-xl border bg-card p-6 shadow-sm backdrop-blur-sm transition-shadow duration-200 hover:shadow-md dark:border-white/10 dark:bg-[hsl(var(--surface-elevated))]/50">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#24292e] dark:bg-foreground border dark:border-border shadow-md">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl border bg-[#24292e] shadow-md dark:border-border dark:bg-foreground">
               <Github className="h-6 w-6 text-primary-foreground dark:text-background" />
             </div>
             <div className="space-y-1">
@@ -257,26 +317,107 @@ function IntegrationsContent() {
       {githubConnected && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               Manage Repositories
             </h3>
             <Button
               size="sm"
+              onClick={() => setShowRepoSelector(!showRepoSelector)}
               className="bg-[hsl(var(--secondary-accent))] hover:bg-[hsl(var(--secondary-accent))]/80 dark:bg-[hsl(var(--primary))] dark:hover:bg-[hsl(var(--primary))]/90"
             >
-              Add More Repositories
+              {showRepoSelector ? "Close" : "Add More Repositories"}
             </Button>
           </div>
 
+          {/* GitHub Repository Selector */}
+          {showRepoSelector && (
+            <div className="space-y-3 rounded-xl border bg-card p-4 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-[hsl(var(--surface-elevated))]/50">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold">
+                  Select repositories from your GitHub ({localSelectedRepos.length} selected)
+                </h4>
+              </div>
+              {githubLoading ? (
+                <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading repositories...
+                </div>
+              ) : githubRepos.length === 0 ? (
+                <div className="py-8 text-center text-sm text-muted-foreground">
+                  No repositories found
+                </div>
+              ) : (
+                <>
+                  <div className="max-h-[400px] space-y-2 overflow-y-auto pr-2">
+                    {githubRepos.map((repo) => {
+                      const isSelected = localSelectedRepos.includes(repo.id);
+                      return (
+                        <div
+                          key={repo.id}
+                          onClick={() => handleToggleGitHubRepo(repo.id)}
+                          className={`group relative flex cursor-pointer items-start gap-2.5 rounded-lg border p-2.5 transition-all duration-200 ${
+                            isSelected
+                              ? "border-primary bg-primary/5"
+                              : "border-border/40 bg-muted/20 hover:border-primary/50 hover:bg-muted/30"
+                          }`}
+                        >
+                          <Checkbox
+                            checked={isSelected}
+                            className="pointer-events-none mt-0.5 shrink-0"
+                          />
+                          <BookMarked
+                            className={`mt-0.5 h-3.5 w-3.5 shrink-0 transition-colors ${
+                              isSelected
+                                ? "text-primary"
+                                : "text-muted-foreground group-hover:text-primary"
+                            }`}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className={`mb-0.5 truncate text-sm font-semibold transition-colors ${
+                                isSelected
+                                  ? "text-primary"
+                                  : "group-hover:text-primary"
+                              }`}
+                            >
+                              {repo.owner.login}/{repo.name}
+                            </p>
+                            <p className="line-clamp-1 text-xs text-muted-foreground">
+                              {repo.description || "No description available"}
+                            </p>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-0.5 text-xs text-muted-foreground">
+                            <Star className="h-3 w-3 text-yellow-500" />
+                            <span>{repo.stargazers_count}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {localSelectedRepos.length > 0 && (
+                    <Button
+                      onClick={handleAddRepositories}
+                      className="w-full bg-primary hover:bg-primary/90"
+                    >
+                      Add {localSelectedRepos.length}{" "}
+                      {localSelectedRepos.length === 1
+                        ? "repository"
+                        : "repositories"}
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
+          )}
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground/50 pointer-events-none" />
+            <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground/50" />
             <Input
               type="text"
               placeholder="Search repositories..."
               value={searchRepo}
               onChange={(e) => setSearchRepo(e.target.value)}
-              className="pl-8 pr-8 bg-muted/40 border-border/50 focus:bg-background focus:border-primary/30"
+              className="border-border/50 bg-muted/40 pl-8 pr-8 focus:border-primary/30 focus:bg-background"
             />
             {searchRepo && (
               <Button
@@ -291,11 +432,13 @@ function IntegrationsContent() {
           </div>
 
           {/* Repository List */}
-          <div className="rounded-xl border dark:border-white/10 bg-card dark:bg-[hsl(var(--surface-elevated))]/50 backdrop-blur-sm shadow-sm overflow-hidden">
+          <div className="overflow-hidden rounded-xl border bg-card shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-[hsl(var(--surface-elevated))]/50">
             {filteredRepos.length === 0 ? (
               <div className="p-8 text-center">
                 <p className="text-sm text-muted-foreground">
-                  {searchRepo ? "No repositories found" : "No repositories selected"}
+                  {searchRepo
+                    ? "No repositories found"
+                    : "No repositories selected"}
                 </p>
               </div>
             ) : (
@@ -303,15 +446,15 @@ function IntegrationsContent() {
                 {filteredRepos.map((repo) => (
                   <div
                     key={repo.id}
-                    className="flex items-center justify-between p-4 hover:bg-muted/50 dark:hover:bg-white/5 transition-colors"
+                    className="flex items-center justify-between p-4 transition-colors hover:bg-muted/50 dark:hover:bg-white/5"
                   >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <GitBranch className="h-4 w-4 text-muted-foreground/60 shrink-0" />
-                      <div className="min-w-0 flex items-center gap-2">
-                        <p className="text-sm text-muted-foreground truncate">
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <GitBranch className="h-4 w-4 shrink-0 text-muted-foreground/60" />
+                      <div className="flex min-w-0 items-center gap-2">
+                        <p className="truncate text-sm text-muted-foreground">
                           {repo.owner}/
                         </p>
-                        <p className="text-sm font-semibold truncate">
+                        <p className="truncate text-sm font-semibold">
                           {repo.name}
                         </p>
                       </div>
@@ -319,15 +462,19 @@ function IntegrationsContent() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleToggleFavorite(repo.id)}
-                        className="p-1.5 rounded-md hover:bg-muted transition-colors"
-                        aria-label={repo.is_favorite ? "Remove from favorites" : "Add to favorites"}
+                        className="rounded-md p-1.5 transition-colors hover:bg-muted"
+                        aria-label={
+                          repo.is_favorite
+                            ? "Remove from favorites"
+                            : "Add to favorites"
+                        }
                       >
                         <Star
                           className={cn(
                             "h-4 w-4 transition-all",
                             repo.is_favorite
                               ? "fill-primary text-primary"
-                              : "text-muted-foreground/40 hover:text-primary"
+                              : "text-muted-foreground/40 hover:text-primary",
                           )}
                         />
                       </button>
@@ -335,7 +482,7 @@ function IntegrationsContent() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleRemoveRepo(repo.id)}
-                        className="h-8 px-3 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                        className="h-8 px-3 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
                       >
                         Remove
                       </Button>
@@ -346,19 +493,20 @@ function IntegrationsContent() {
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            You have {repositories.length} {repositories.length === 1 ? 'repository' : 'repositories'} selected
+            You have {storeRepositories.length}{" "}
+            {storeRepositories.length === 1 ? "repository" : "repositories"} selected
           </p>
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function PreferencesContent() {
-  const [notifications, setNotifications] = React.useState(true)
+  const [notifications, setNotifications] = React.useState(true);
 
   return (
-    <div className="space-y-8 max-w-3xl relative">
+    <div className="relative max-w-3xl space-y-8">
       {/* Header */}
       <div className="space-y-2">
         <h2 className="text-2xl font-bold tracking-tight">Preferences</h2>
@@ -372,43 +520,48 @@ function PreferencesContent() {
       {/* Blurred Content */}
       <div className="relative">
         {/* Notifications Section - Blurred */}
-        <div className="space-y-4 blur-sm pointer-events-none select-none opacity-50">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-          Notifications
-        </h3>
-        <div className="flex items-center justify-between p-6 rounded-xl border dark:border-white/10 bg-card dark:bg-[hsl(var(--surface-elevated))]/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow duration-200">
-          <div className="space-y-1">
-            <Label htmlFor="notifications" className="text-base font-semibold cursor-pointer">
-              Email Notifications
-            </Label>
-            <p className="text-sm text-muted-foreground">
-              Receive notifications about your repositories
-            </p>
+        <div className="pointer-events-none select-none space-y-4 opacity-50 blur-sm">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Notifications
+          </h3>
+          <div className="flex items-center justify-between rounded-xl border bg-card p-6 shadow-sm backdrop-blur-sm transition-shadow duration-200 hover:shadow-md dark:border-white/10 dark:bg-[hsl(var(--surface-elevated))]/50">
+            <div className="space-y-1">
+              <Label
+                htmlFor="notifications"
+                className="cursor-pointer text-base font-semibold"
+              >
+                Email Notifications
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Receive notifications about your repositories
+              </p>
+            </div>
+            <Switch
+              id="notifications"
+              checked={notifications}
+              onCheckedChange={setNotifications}
+            />
           </div>
-          <Switch
-            id="notifications"
-            checked={notifications}
-            onCheckedChange={setNotifications}
-          />
         </div>
-      </div>
 
         {/* Coming Soon Overlay */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center space-y-2">
+          <div className="space-y-2 text-center">
             <h3 className="text-3xl font-bold text-foreground">Coming Soon</h3>
-            <p className="text-sm text-muted-foreground">Preferences will be available soon</p>
+            <p className="text-sm text-muted-foreground">
+              Preferences will be available soon
+            </p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function PlansContent() {
-  const [currentPlan, setCurrentPlan] = React.useState("free")
-  const [searchInvoice, setSearchInvoice] = React.useState("")
-  const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc")
+  const [currentPlan, setCurrentPlan] = React.useState("free");
+  const [searchInvoice, setSearchInvoice] = React.useState("");
+  const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
 
   const plans = [
     {
@@ -416,11 +569,7 @@ function PlansContent() {
       name: "Free plan",
       price: "$0",
       period: "/mth",
-      features: [
-        "Up to 3 repositories",
-        "Basic analysis",
-        "Community support",
-      ],
+      features: ["Up to 3 repositories", "Basic analysis", "Community support"],
     },
     {
       id: "pro",
@@ -447,16 +596,31 @@ function PlansContent() {
         "SLA guarantee",
       ],
     },
-  ]
+  ];
 
   const invoices = [
-    { id: "0012", date: "12 Apr 2025", plan: "Basic plan", amount: "USD $10.00" },
-    { id: "0011", date: "12 Mar 2025", plan: "Basic plan", amount: "USD $10.00" },
-    { id: "0010", date: "12 Feb 2025", plan: "Basic plan", amount: "USD $10.00" },
-  ]
+    {
+      id: "0012",
+      date: "12 Apr 2025",
+      plan: "Basic plan",
+      amount: "USD $10.00",
+    },
+    {
+      id: "0011",
+      date: "12 Mar 2025",
+      plan: "Basic plan",
+      amount: "USD $10.00",
+    },
+    {
+      id: "0010",
+      date: "12 Feb 2025",
+      plan: "Basic plan",
+      amount: "USD $10.00",
+    },
+  ];
 
   return (
-    <div className="space-y-8 max-w-5xl relative">
+    <div className="relative max-w-5xl space-y-8">
       {/* Header */}
       <div className="space-y-2">
         <h2 className="text-2xl font-bold tracking-tight">Plans & Billing</h2>
@@ -470,164 +634,192 @@ function PlansContent() {
       {/* Blurred Content */}
       <div className="relative">
         {/* Pricing Plans - Blurred */}
-        <div className="space-y-8 blur-sm pointer-events-none select-none opacity-50">
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-          Choose Your Plan
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className={cn(
-                "relative p-4 pb-0 rounded-xl border backdrop-blur-sm shadow-sm transition-all duration-200 flex flex-col",
-                currentPlan === plan.id
-                  ? "border-primary dark:border-primary bg-card dark:bg-[hsl(var(--surface-elevated))]/50 ring-2 ring-primary/20"
-                  : "border-border/50 dark:border-white/10 bg-card dark:bg-[hsl(var(--surface-elevated))]/30 hover:shadow-md"
-              )}
-            >
-              {plan.popular && (
-                <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-                  <span className="px-2 py-0.5 text-[9px] font-semibold bg-primary/90 text-primary-foreground rounded-md">
-                    Popular
-                  </span>
-                </div>
-              )}
-              <div className="space-y-3 flex-1">
-                <div>
-                  <h4 className="font-semibold text-base">{plan.name}</h4>
-                  <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-2xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground text-xs">{plan.period}</span>
+        <div className="pointer-events-none select-none space-y-8 opacity-50 blur-sm">
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Choose Your Plan
+            </h3>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              {plans.map((plan) => (
+                <div
+                  key={plan.id}
+                  className={cn(
+                    "relative flex flex-col rounded-xl border p-4 pb-0 shadow-sm backdrop-blur-sm transition-all duration-200",
+                    currentPlan === plan.id
+                      ? "border-primary bg-card ring-2 ring-primary/20 dark:border-primary dark:bg-[hsl(var(--surface-elevated))]/50"
+                      : "border-border/50 bg-card hover:shadow-md dark:border-white/10 dark:bg-[hsl(var(--surface-elevated))]/30",
+                  )}
+                >
+                  {plan.popular && (
+                    <div className="absolute -top-2 left-1/2 -translate-x-1/2">
+                      <span className="rounded-md bg-primary/90 px-2 py-0.5 text-[9px] font-semibold text-primary-foreground">
+                        Popular
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <h4 className="text-base font-semibold">{plan.name}</h4>
+                      <div className="mt-1 flex items-baseline gap-1">
+                        <span className="text-2xl font-bold">{plan.price}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {plan.period}
+                        </span>
+                      </div>
+                    </div>
+                    <ul className="space-y-1.5">
+                      {plan.features.map((feature, index) => (
+                        <li
+                          key={index}
+                          className="flex items-start gap-1.5 text-xs"
+                        >
+                          <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                          <span className="leading-tight text-muted-foreground">
+                            {feature}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="pb-4 pt-3">
+                    <Button
+                      variant={currentPlan === plan.id ? "outline" : "default"}
+                      className={cn(
+                        "h-8 w-full text-xs",
+                        currentPlan !== plan.id &&
+                          "bg-[hsl(var(--secondary-accent))] hover:bg-[hsl(var(--secondary-accent))]/80 dark:bg-[hsl(var(--primary))] dark:hover:bg-[hsl(var(--primary))]/90",
+                      )}
+                      disabled={currentPlan === plan.id}
+                      onClick={() => setCurrentPlan(plan.id)}
+                    >
+                      {currentPlan === plan.id
+                        ? "Current plan"
+                        : "Switch to this plan"}
+                    </Button>
                   </div>
                 </div>
-                <ul className="space-y-1.5">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-1.5 text-xs">
-                      <Check className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
-                      <span className="text-muted-foreground leading-tight">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="pt-3 pb-4">
+              ))}
+            </div>
+          </div>
+
+          {/* Payment Method */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Payment Method
+            </h3>
+            <div className="rounded-xl border bg-card p-6 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-[hsl(var(--surface-elevated))]/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-md">
+                    <CreditCard className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">•••• •••• •••• 4242</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Expires 12/2026 • Auto-renewal enabled
+                    </p>
+                  </div>
+                </div>
                 <Button
-                  variant={currentPlan === plan.id ? "outline" : "default"}
-                  className={cn(
-                    "w-full h-8 text-xs",
-                    currentPlan !== plan.id && "bg-[hsl(var(--secondary-accent))] hover:bg-[hsl(var(--secondary-accent))]/80 dark:bg-[hsl(var(--primary))] dark:hover:bg-[hsl(var(--primary))]/90"
-                  )}
-                  disabled={currentPlan === plan.id}
-                  onClick={() => setCurrentPlan(plan.id)}
+                  variant="outline"
+                  size="sm"
+                  className="border-border hover:bg-[hsl(var(--secondary-accent))] hover:text-white dark:border-white/20 dark:hover:bg-[hsl(var(--primary))] dark:hover:text-white"
                 >
-                  {currentPlan === plan.id ? "Current plan" : "Switch to this plan"}
+                  Change
                 </Button>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      {/* Payment Method */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-          Payment Method
-        </h3>
-        <div className="p-6 rounded-xl border dark:border-white/10 bg-card dark:bg-[hsl(var(--surface-elevated))]/50 backdrop-blur-sm shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-md">
-                <CreditCard className="h-6 w-6 text-white" />
+          {/* Previous Invoices */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                Previous Invoices
+              </h3>
+              <button className="text-xs font-medium text-muted-foreground transition-colors duration-200 hover:text-primary">
+                View all
+              </button>
+            </div>
+
+            {/* Search and Sort */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground/70" />
+                <Input
+                  type="text"
+                  placeholder="Search invoices..."
+                  value={searchInvoice}
+                  onChange={(e) => setSearchInvoice(e.target.value)}
+                  className="h-8 rounded-md border-border/50 bg-muted/40 pl-7 pr-3 text-xs placeholder:text-muted-foreground/50 focus:border-primary/30 focus:bg-background"
+                />
               </div>
-              <div>
-                <h4 className="font-semibold">•••• •••• •••• 4242</h4>
-                <p className="text-sm text-muted-foreground">Expires 12/2026 • Auto-renewal enabled</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                }
+                className="h-8 gap-1.5 border-border px-3 text-xs hover:bg-[hsl(var(--secondary-accent))] hover:text-white dark:border-white/20 dark:hover:bg-[hsl(var(--primary))] dark:hover:text-white"
+              >
+                <ArrowUpDown className="h-3 w-3" />
+                Date
+              </Button>
+            </div>
+            <div className="overflow-hidden rounded-xl border bg-card shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-[hsl(var(--surface-elevated))]/50">
+              <div className="divide-y dark:divide-white/5">
+                {invoices.map((invoice) => (
+                  <div
+                    key={invoice.id}
+                    className="flex items-center justify-between p-4 transition-colors hover:bg-muted/50 dark:hover:bg-white/5"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <h4 className="text-sm font-semibold">
+                          Invoice {invoice.id}
+                        </h4>
+                        <p className="text-xs text-muted-foreground">
+                          {invoice.date}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className="text-sm font-semibold">
+                          {invoice.amount}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {invoice.plan}
+                        </p>
+                      </div>
+                      <button className="flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors duration-200 hover:text-primary">
+                        <Download className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-            <Button variant="outline" size="sm" className="border-border hover:bg-[hsl(var(--secondary-accent))] hover:text-white dark:border-white/20 dark:hover:bg-[hsl(var(--primary))] dark:hover:text-white">
-              Change
-            </Button>
           </div>
-        </div>
-      </div>
-
-      {/* Previous Invoices */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            Previous Invoices
-          </h3>
-          <button className="text-xs text-muted-foreground hover:text-primary transition-colors duration-200 font-medium">
-            View all
-          </button>
-        </div>
-
-        {/* Search and Sort */}
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground/70 pointer-events-none" />
-            <Input
-              type="text"
-              placeholder="Search invoices..."
-              value={searchInvoice}
-              onChange={(e) => setSearchInvoice(e.target.value)}
-              className="h-8 pl-7 pr-3 text-xs rounded-md bg-muted/40 border-border/50 focus:bg-background focus:border-primary/30 placeholder:text-muted-foreground/50"
-            />
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            className="h-8 px-3 text-xs border-border hover:bg-[hsl(var(--secondary-accent))] hover:text-white dark:border-white/20 dark:hover:bg-[hsl(var(--primary))] dark:hover:text-white gap-1.5"
-          >
-            <ArrowUpDown className="h-3 w-3" />
-            Date
-          </Button>
-        </div>
-        <div className="rounded-xl border dark:border-white/10 bg-card dark:bg-[hsl(var(--surface-elevated))]/50 backdrop-blur-sm shadow-sm overflow-hidden">
-          <div className="divide-y dark:divide-white/5">
-            {invoices.map((invoice) => (
-              <div
-                key={invoice.id}
-                className="flex items-center justify-between p-4 hover:bg-muted/50 dark:hover:bg-white/5 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div>
-                    <h4 className="font-semibold text-sm">Invoice {invoice.id}</h4>
-                    <p className="text-xs text-muted-foreground">{invoice.date}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-sm font-semibold">{invoice.amount}</p>
-                    <p className="text-xs text-muted-foreground">{invoice.plan}</p>
-                  </div>
-                  <button className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors duration-200">
-                    <Download className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
         </div>
 
         {/* Coming Soon Overlay */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center space-y-2">
+          <div className="space-y-2 text-center">
             <h3 className="text-3xl font-bold text-foreground">Coming Soon</h3>
-            <p className="text-sm text-muted-foreground">Plans & billing will be available soon</p>
+            <p className="text-sm text-muted-foreground">
+              Plans & billing will be available soon
+            </p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function UsageContent() {
   return (
-    <div className="space-y-8 max-w-3xl relative">
+    <div className="relative max-w-3xl space-y-8">
       {/* Header */}
       <div className="space-y-2">
         <h2 className="text-2xl font-bold tracking-tight">Usage</h2>
@@ -641,38 +833,48 @@ function UsageContent() {
       {/* Blurred Content */}
       <div className="relative">
         {/* Usage Metrics - Blurred */}
-        <div className="space-y-4 blur-sm pointer-events-none select-none opacity-50">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+        <div className="pointer-events-none select-none space-y-4 opacity-50 blur-sm">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             Current Usage
           </h3>
           <div className="space-y-4">
-            <div className="p-6 rounded-xl border dark:border-white/10 bg-card dark:bg-[hsl(var(--surface-elevated))]/50 backdrop-blur-sm shadow-sm">
+            <div className="rounded-xl border bg-card p-6 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-[hsl(var(--surface-elevated))]/50">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-semibold">API Calls</h4>
-                    <p className="text-xs text-muted-foreground mt-0.5">Monthly API requests</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Monthly API requests
+                    </p>
                   </div>
                   <span className="text-lg font-bold">1,234 / 10,000</span>
                 </div>
-                <div className="h-3 rounded-full bg-muted dark:bg-white/5 overflow-hidden">
-                  <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: "12.34%" }} />
+                <div className="h-3 overflow-hidden rounded-full bg-muted dark:bg-white/5">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all duration-500"
+                    style={{ width: "12.34%" }}
+                  />
                 </div>
                 <p className="text-xs text-muted-foreground">12% used</p>
               </div>
             </div>
 
-            <div className="p-6 rounded-xl border dark:border-white/10 bg-card dark:bg-[hsl(var(--surface-elevated))]/50 backdrop-blur-sm shadow-sm">
+            <div className="rounded-xl border bg-card p-6 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-[hsl(var(--surface-elevated))]/50">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-semibold">Repositories</h4>
-                    <p className="text-xs text-muted-foreground mt-0.5">Active repositories</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Active repositories
+                    </p>
                   </div>
                   <span className="text-lg font-bold">3 / 5</span>
                 </div>
-                <div className="h-3 rounded-full bg-muted dark:bg-white/5 overflow-hidden">
-                  <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: "60%" }} />
+                <div className="h-3 overflow-hidden rounded-full bg-muted dark:bg-white/5">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all duration-500"
+                    style={{ width: "60%" }}
+                  />
                 </div>
                 <p className="text-xs text-muted-foreground">60% used</p>
               </div>
@@ -682,12 +884,14 @@ function UsageContent() {
 
         {/* Coming Soon Overlay */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center space-y-2">
+          <div className="space-y-2 text-center">
             <h3 className="text-3xl font-bold text-foreground">Coming Soon</h3>
-            <p className="text-sm text-muted-foreground">Usage metrics will be available soon</p>
+            <p className="text-sm text-muted-foreground">
+              Usage metrics will be available soon
+            </p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
