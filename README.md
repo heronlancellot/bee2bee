@@ -40,23 +40,24 @@ bee2bee/
 ├── supabase/              # Supabase config + migrations
 └── n8n/                   # n8n + ngrok (optional)
 ```
+
 <p align="center">
-  <img src="./docs/bee2bee-future-archtecture.png" alt="Project architecture diagram" width="900" />
+  <img src="./docs/bee2bee_future_archtecture.png" alt="Project architecture diagram" width="900" />
 </p>
 
 ### Technology Stack
 
-| Layer                     | Technology                              |
-| ------------------------- | --------------------------------------- |
-| **Frontend Framework**    | Next.js 14 (App Router)                 |
-| **Language**              | TypeScript                              |
-| **Styling**               | Tailwind CSS                            |
-| **UI Components**         | shadcn/ui + Radix UI                    |
-| **State Management**      | React Hooks                             |
-| **AI Integration**        | Vercel AI SDK                           |
-| **Markdown Rendering**    | react-markdown + remark-gfm             |
-| **Animations**            | Framer Motion                           |
-| **Package Manager**       | pnpm 9.12.0                             |
+| Layer                  | Technology                  |
+| ---------------------- | --------------------------- |
+| **Frontend Framework** | Next.js 14 (App Router)     |
+| **Language**           | TypeScript                  |
+| **Styling**            | Tailwind CSS                |
+| **UI Components**      | shadcn/ui + Radix UI        |
+| **State Management**   | React Hooks                 |
+| **AI Integration**     | Vercel AI SDK               |
+| **Markdown Rendering** | react-markdown + remark-gfm |
+| **Animations**         | Framer Motion               |
+| **Package Manager**    | pnpm 9.12.0                 |
 
 ## Quick Start
 
@@ -70,6 +71,7 @@ bee2bee/
 ### Installation
 
 ### 1) Install dependencies
+
 ```bash
 # From repository root
 cd frontend
@@ -77,12 +79,14 @@ pnpm install
 ```
 
 ### 2) Configure environment
+
 ```bash
 # Create frontend env
 cp .env.example .env.local
 ```
 
 For local database, enable the local toggle used by the Supabase client ([frontend/src/integrations/supabase/client.ts](frontend/src/integrations/supabase/client.ts)):
+
 ```env
 # frontend/.env.local
 NEXT_PUBLIC_USE_LOCAL_SUPABASE=true
@@ -92,6 +96,7 @@ AGENTVERSE_API_KEY=your-agentverse-api-key
 ```
 
 ### 3) Start local database (Supabase)
+
 Use the scripts defined in [frontend/package.json](frontend/package.json):
 
 ```bash
@@ -109,10 +114,12 @@ pnpm supabase:gen-types
 ```
 
 Notes:
+
 - Studio URL: http://localhost:54323 (configured in [supabase/config.toml](supabase/config.toml))
 - The frontend Supabase client automatically points to http://127.0.0.1:54321 when `NEXT_PUBLIC_USE_LOCAL_SUPABASE=true` (see [frontend/src/integrations/supabase/client.ts](frontend/src/integrations/supabase/client.ts))
 
 ### 4) Run the app
+
 ```bash
 # From repository root
 cd frontend
@@ -155,6 +162,7 @@ This project uses pnpm workspaces for efficient dependency management. The `pack
   - Types (auto-generated): [frontend/src/integrations/supabase/types.ts](frontend/src/integrations/supabase/types.ts)
 
 Workflow:
+
 1. Start DB: `pnpm supabase:start`
 2. Apply schema locally: `pnpm supabase:reset`
 3. Regenerate types after schema changes: `pnpm supabase:gen-types`
