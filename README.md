@@ -26,21 +26,19 @@ Bee2Bee is an intelligent platform that helps developers understand, analyze, an
 Bee2Bee follows a modular monorepo architecture:
 
 ```
-repomind-ui/
+bee2bee/
 ├── frontend/              # Next.js frontend application
 │   ├── src/
 │   │   ├── app/          # Next.js 14 App Router pages
-│   │   │   ├── chat/     # Main chat interface
-│   │   │   ├── dashboard/# Repository dashboard
-│   │   │   └── login/    # Authentication
 │   │   ├── components/   # React components
-│   │   │   ├── ai/       # AI chat components
-│   │   │   ├── ui/       # shadcn/ui components
-│   │   │   └── layout/   # Layout components
 │   │   ├── hooks/        # Custom React hooks
-│   │   ├── lib/          # Utility libraries
-│   │   └── types/        # TypeScript type definitions
+│   │   ├── lib/          # Utility libraries (Agentverse tools, etc.)
+│   │   └── integrations/ # Supabase client/types/hooks
 │   └── public/           # Static assets
+├── agents/                # Python agents (uAgents + MeTTa)
+│   └── repository-analyzer/
+├── supabase/              # Supabase config + migrations
+└── n8n/                   # n8n + ngrok (optional)
 ```
 <p align="center">
   <img src="./docs/bee2bee-future-archtecture.png" alt="Project architecture diagram" width="900" />
@@ -64,45 +62,63 @@ repomind-ui/
 
 ### Prerequisites
 
-- **Node.js** 18.14+ or 20.x
-- **pnpm** 9.12.0+
-- **Git**
+- Node.js 18.14+ or 20.x
+- pnpm 9.12.0+
+- Docker Desktop (for local database)
+- Supabase CLI (install with: `npx supabase --version`)
 
 ### Installation
 
-1. **Clone the repository**
+### 1) Install dependencies
 ```bash
-git clone https://github.com/yourusername/repomind-ui.git
-cd repomind-ui
-```
-
-2. **Install dependencies**
-```bash
-# Install pnpm if you don't have it
-npm install -g pnpm@9.12.0
-
-# Install project dependencies
+# From repository root
 cd frontend
 pnpm install
 ```
 
-3. **Set up environment variables**
+### 2) Configure environment
 ```bash
-# Create .env.local in frontend directory
+# Create frontend env
 cp .env.example .env.local
-
-# Edit .env.local with your configuration
-# Required variables:
-# - NEXT_PUBLIC_API_URL=http://localhost:4000
-# - OPENAI_API_KEY=your_openai_key
 ```
 
-4. **Run the development server**
+For local database, enable the local toggle used by the Supabase client ([frontend/src/integrations/supabase/client.ts](frontend/src/integrations/supabase/client.ts)):
+```env
+# frontend/.env.local
+NEXT_PUBLIC_USE_LOCAL_SUPABASE=true
+# Optional (for chat/tools):
+ASI_ONE_API_KEY=your-asi-one-api-key
+AGENTVERSE_API_KEY=your-agentverse-api-key
+```
+
+### 3) Start local database (Supabase)
+Use the scripts defined in [frontend/package.json](frontend/package.json):
+
 ```bash
-pnpm dev
+# From repository root (or inside frontend/)
+cd frontend
+
+# Start Supabase containers (DB, API, Studio)
+pnpm supabase:start
+
+# Apply local migrations and seed (drops/recreates)
+pnpm supabase:reset
+
+# (Optional) Generate TypeScript types from DB schema
+pnpm supabase:gen-types
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the application.
+Notes:
+- Studio URL: http://localhost:54323 (configured in [supabase/config.toml](supabase/config.toml))
+- The frontend Supabase client automatically points to http://127.0.0.1:54321 when `NEXT_PUBLIC_USE_LOCAL_SUPABASE=true` (see [frontend/src/integrations/supabase/client.ts](frontend/src/integrations/supabase/client.ts))
+
+### 4) Run the app
+```bash
+# From repository root
+cd frontend
+pnpm dev
+# Visit http://localhost:3000
+```
 
 ## Development
 
@@ -129,6 +145,22 @@ This project uses pnpm workspaces for efficient dependency management. The `pack
   "packageManager": "pnpm@9.12.0+sha512.4abf725084d7bcbafbd728bfc7bee61f2f791f977fd87542b3579dcb23504d170d46337945e4c66485cd12d588a0c0e570ed9c477e7ccdd8507cf05f3f92eaca"
 }
 ```
+
+## Local Database (Supabase)
+
+- Config: [supabase/config.toml](supabase/config.toml)
+- Migrations: [supabase/migrations/](supabase/migrations/)
+- Frontend Supabase client and types:
+  - Client toggle: [frontend/src/integrations/supabase/client.ts](frontend/src/integrations/supabase/client.ts)
+  - Types (auto-generated): [frontend/src/integrations/supabase/types.ts](frontend/src/integrations/supabase/types.ts)
+
+Workflow:
+1. Start DB: `pnpm supabase:start`
+2. Apply schema locally: `pnpm supabase:reset`
+3. Regenerate types after schema changes: `pnpm supabase:gen-types`
+4. Run app: `pnpm dev`
+
+For advanced details, see [supabase/README.md](supabase/README.md).
 
 ### Tailwind Configuration
 
