@@ -119,7 +119,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {/* Scrollable Content */}
       <SidebarContent>
         {/* <NavMain items={navMainData} /> */}
-        <NavProjects projects={projectsData} />
+        <NavProjects />
       </SidebarContent>
 
       <SidebarRail />
