@@ -179,7 +179,7 @@ function IntegrationsContent() {
   };
 
   const handleAddRepositories = () => {
-    const selectedRepoData = githubRepos.filter((r) =>
+    const selectedRepoData = availableGitHubRepos.filter((r) =>
       localSelectedRepos.includes(r.id)
     );
     selectedRepoData.forEach((repo) => {
@@ -252,6 +252,12 @@ function IntegrationsContent() {
       toast.success("GitHub disconnected successfully!");
     }
   }, [githubIdentity, unlinkIdentity]);
+
+  // Filter out repos that are already in the store
+  const availableGitHubRepos = React.useMemo(() => {
+    const storeRepoIds = new Set(storeRepositories.map((r) => r.id));
+    return githubRepos.filter((repo) => !storeRepoIds.has(repo.id.toString()));
+  }, [githubRepos, storeRepositories]);
 
   const filteredRepos = React.useMemo(
     () =>
@@ -342,14 +348,14 @@ function IntegrationsContent() {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Loading repositories...
                 </div>
-              ) : githubRepos.length === 0 ? (
+              ) : availableGitHubRepos.length === 0 ? (
                 <div className="py-8 text-center text-sm text-muted-foreground">
-                  No repositories found
+                  {githubRepos.length === 0 ? "No repositories found" : "All repositories have been added"}
                 </div>
               ) : (
                 <>
                   <div className="max-h-[400px] space-y-2 overflow-y-auto pr-2">
-                    {githubRepos.map((repo) => {
+                    {availableGitHubRepos.map((repo) => {
                       const isSelected = localSelectedRepos.includes(repo.id);
                       return (
                         <div
