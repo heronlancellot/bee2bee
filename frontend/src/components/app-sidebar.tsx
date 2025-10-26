@@ -118,7 +118,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       {/* Scrollable Content */}
       <SidebarContent>
-        <NavMain items={navMainData} />
+        {/* <NavMain items={navMainData} /> */}
         <NavProjects projects={projectsData} />
       </SidebarContent>
 
