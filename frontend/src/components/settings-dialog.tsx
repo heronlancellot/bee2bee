@@ -1,12 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { Settings, Github, Settings2, CreditCard, BarChart3, Check, Download, Search, ArrowUpDown } from "lucide-react"
+import { Github, Settings2, CreditCard, BarChart3, Check, Download, Search, ArrowUpDown, GitBranch, Star, X } from "lucide-react"
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -14,6 +12,10 @@ import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { useAuth } from "@/integrations/supabase/hooks/useAuth"
+import { useLinkIdentity } from "@/integrations/supabase/hooks/useLinkIdentity"
+import { useRepositoryStore } from "@/store/repositories"
+import { toast } from "sonner"
 
 type SettingsSection = "github" | "preferences" | "plans" | "usage"
 
@@ -128,7 +130,78 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 }
 
 function IntegrationsContent() {
-  const [githubConnected, setGithubConnected] = React.useState(true)
+  const { user } = useAuth()
+  const { linkGitHub, unlinkIdentity, loading: linkLoading } = useLinkIdentity()
+
+  // Store state
+  const repositories = useRepositoryStore((state) => state.repositories)
+
+  const [searchRepo, setSearchRepo] = React.useState("")
+
+  // Repository handlers - use stable callbacks
+  const handleRemoveRepo = React.useCallback((repoId: string) => {
+    useRepositoryStore.getState().removeRepository(repoId);
+  }, []);
+
+  const handleToggleFavorite = React.useCallback((repoId: string) => {
+    useRepositoryStore.getState().toggleFavorite(repoId);
+  }, []);
+
+  // DEV BYPASS: Force GitHub to be connected in development
+  // Use a stable mock object to prevent infinite re-renders
+  const devBypassIdentity = React.useRef({
+    id: 'dev-bypass-id',
+    user_id: 'dev-bypass-user',
+    identity_id: 'dev-bypass-identity-id',
+    provider: 'github',
+    identity_data: {},
+    last_sign_in_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  })
+
+  const githubIdentity = React.useMemo(() => {
+    if (process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === 'true') {
+      return devBypassIdentity.current
+    }
+    return user?.identities?.find((identity) => identity.provider === 'github')
+  }, [user?.identities])
+
+  const githubConnected = !!githubIdentity
+
+  const handleConnectGitHub = React.useCallback(async () => {
+    const { error } = await linkGitHub()
+    if (error) {
+      toast.error("Failed to connect GitHub", { description: error })
+    } else {
+      toast.success("GitHub connected successfully!")
+    }
+  }, [linkGitHub])
+
+  const handleDisconnectGitHub = React.useCallback(async () => {
+    if (!githubIdentity) return
+
+    // DEV BYPASS: Skip actual disconnection in development
+    if (process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === 'true') {
+      toast.info("Dev Mode", { description: "GitHub disconnect bypassed in development mode" })
+      return
+    }
+
+    const { error } = await unlinkIdentity(githubIdentity)
+    if (error) {
+      toast.error("Failed to disconnect GitHub", { description: error })
+    } else {
+      toast.success("GitHub disconnected successfully!")
+    }
+  }, [githubIdentity, unlinkIdentity])
+
+  const filteredRepos = React.useMemo(
+    () => repositories.filter(r =>
+      r.name.toLowerCase().includes(searchRepo.toLowerCase()) ||
+      r.owner.toLowerCase().includes(searchRepo.toLowerCase())
+    ),
+    [repositories, searchRepo]
+  )
 
   return (
     <div className="space-y-8 max-w-3xl">
@@ -162,21 +235,121 @@ function IntegrationsContent() {
           {githubConnected ? (
             <Button
               variant="outline"
-              onClick={() => setGithubConnected(false)}
+              onClick={handleDisconnectGitHub}
+              disabled={linkLoading}
               className="border-border hover:bg-[hsl(var(--secondary-accent))] hover:text-white dark:border-white/20 dark:hover:bg-[hsl(var(--primary))] dark:hover:text-white"
             >
-              Disconnect
+              {linkLoading ? "Disconnecting..." : "Disconnect"}
             </Button>
           ) : (
             <Button
-              onClick={() => setGithubConnected(true)}
+              onClick={handleConnectGitHub}
+              disabled={linkLoading}
               className="bg-[hsl(var(--secondary-accent))] hover:bg-[hsl(var(--secondary-accent))]/80 dark:bg-[hsl(var(--primary))] dark:hover:bg-[hsl(var(--primary))]/90"
             >
-              Connect GitHub
+              {linkLoading ? "Connecting..." : "Connect GitHub"}
             </Button>
           )}
         </div>
       </div>
+
+      {/* Repository Management */}
+      {githubConnected && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              Manage Repositories
+            </h3>
+            <Button
+              size="sm"
+              className="bg-[hsl(var(--secondary-accent))] hover:bg-[hsl(var(--secondary-accent))]/80 dark:bg-[hsl(var(--primary))] dark:hover:bg-[hsl(var(--primary))]/90"
+            >
+              Add More Repositories
+            </Button>
+          </div>
+
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground/50 pointer-events-none" />
+            <Input
+              type="text"
+              placeholder="Search repositories..."
+              value={searchRepo}
+              onChange={(e) => setSearchRepo(e.target.value)}
+              className="pl-8 pr-8 bg-muted/40 border-border/50 focus:bg-background focus:border-primary/30"
+            />
+            {searchRepo && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1 h-7 w-7 p-0"
+                onClick={() => setSearchRepo("")}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+
+          {/* Repository List */}
+          <div className="rounded-xl border dark:border-white/10 bg-card dark:bg-[hsl(var(--surface-elevated))]/50 backdrop-blur-sm shadow-sm overflow-hidden">
+            {filteredRepos.length === 0 ? (
+              <div className="p-8 text-center">
+                <p className="text-sm text-muted-foreground">
+                  {searchRepo ? "No repositories found" : "No repositories selected"}
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y dark:divide-white/5">
+                {filteredRepos.map((repo) => (
+                  <div
+                    key={repo.id}
+                    className="flex items-center justify-between p-4 hover:bg-muted/50 dark:hover:bg-white/5 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <GitBranch className="h-4 w-4 text-muted-foreground/60 shrink-0" />
+                      <div className="min-w-0 flex items-center gap-2">
+                        <p className="text-sm text-muted-foreground truncate">
+                          {repo.owner}/
+                        </p>
+                        <p className="text-sm font-semibold truncate">
+                          {repo.name}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleToggleFavorite(repo.id)}
+                        className="p-1.5 rounded-md hover:bg-muted transition-colors"
+                        aria-label={repo.is_favorite ? "Remove from favorites" : "Add to favorites"}
+                      >
+                        <Star
+                          className={cn(
+                            "h-4 w-4 transition-all",
+                            repo.is_favorite
+                              ? "fill-primary text-primary"
+                              : "text-muted-foreground/40 hover:text-primary"
+                          )}
+                        />
+                      </button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveRepo(repo.id)}
+                        className="h-8 px-3 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            You have {repositories.length} {repositories.length === 1 ? 'repository' : 'repositories'} selected
+          </p>
+        </div>
+      )}
     </div>
   )
 }
@@ -185,7 +358,7 @@ function PreferencesContent() {
   const [notifications, setNotifications] = React.useState(true)
 
   return (
-    <div className="space-y-8 max-w-3xl">
+    <div className="space-y-8 max-w-3xl relative">
       {/* Header */}
       <div className="space-y-2">
         <h2 className="text-2xl font-bold tracking-tight">Preferences</h2>
@@ -196,8 +369,10 @@ function PreferencesContent() {
 
       <Separator className="dark:bg-white/5" />
 
-      {/* Notifications Section */}
-      <div className="space-y-4">
+      {/* Blurred Content */}
+      <div className="relative">
+        {/* Notifications Section - Blurred */}
+        <div className="space-y-4 blur-sm pointer-events-none select-none opacity-50">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
           Notifications
         </h3>
@@ -215,6 +390,15 @@ function PreferencesContent() {
             checked={notifications}
             onCheckedChange={setNotifications}
           />
+        </div>
+      </div>
+
+        {/* Coming Soon Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center space-y-2">
+            <h3 className="text-3xl font-bold text-foreground">Coming Soon</h3>
+            <p className="text-sm text-muted-foreground">Preferences will be available soon</p>
+          </div>
         </div>
       </div>
     </div>
@@ -272,7 +456,7 @@ function PlansContent() {
   ]
 
   return (
-    <div className="space-y-8 max-w-5xl">
+    <div className="space-y-8 max-w-5xl relative">
       {/* Header */}
       <div className="space-y-2">
         <h2 className="text-2xl font-bold tracking-tight">Plans & Billing</h2>
@@ -283,7 +467,10 @@ function PlansContent() {
 
       <Separator className="dark:bg-white/5" />
 
-      {/* Pricing Plans */}
+      {/* Blurred Content */}
+      <div className="relative">
+        {/* Pricing Plans - Blurred */}
+        <div className="space-y-8 blur-sm pointer-events-none select-none opacity-50">
       <div className="space-y-4">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
           Choose Your Plan
@@ -421,6 +608,16 @@ function PlansContent() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+        </div>
+
+        {/* Coming Soon Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center space-y-2">
+            <h3 className="text-3xl font-bold text-foreground">Coming Soon</h3>
+            <p className="text-sm text-muted-foreground">Plans & billing will be available soon</p>
           </div>
         </div>
       </div>
