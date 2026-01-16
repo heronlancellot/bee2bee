@@ -33,6 +33,8 @@
     --muted-foreground: 0 0% 45.1%;
     --accent: 142 70% 35%;
     --accent-foreground: 0 0% 100%;
+    --secondary-accent: 170 50% 25%;
+    --secondary-accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 89.8%;
@@ -54,6 +56,16 @@
     --sidebar-accent-foreground: 142 70% 35%;
     --sidebar-border: 0 0% 89.8%;
     --sidebar-ring: 142 60% 50%;
+    /* Elevated surface - for modals, dialogs, popovers */
+    --surface-elevated: 0 0% 98%;
+    /* Shadow tokens */
+    --shadow-sm: 0 0% 0% / 0.05;
+    --shadow-md: 0 0% 0% / 0.12;
+    --shadow-lg: 0 0% 0% / 0.3;
+    /* Glow effect tokens */
+    --glow-sm: 0 0 4px hsl(var(--primary) / 0.15);
+    --glow-md: 0 0 6px hsl(var(--primary) / 0.3);
+    --glow-lg: 0 0 10px hsl(var(--primary) / 0.45);
   }
 
   .dark {
@@ -71,6 +83,8 @@
     --muted-foreground: 0 0% 63.9%;
     --accent: 142 76% 36%;
     --accent-foreground: 0 0% 98%;
+    --secondary-accent: 170 50% 20%;
+    --secondary-accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 14.9%;
@@ -83,14 +97,26 @@
     --chart-3: 142 68% 27%;
     --chart-4: 142 64% 24%;
     --chart-5: 142 60% 21%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-background: 0 0% 10.2%;
+    --sidebar-foreground: 180 5% 65%;
     --sidebar-primary: 142 76% 36%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 142 76% 36%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 142 76% 36%;
+    --header-background: 0 0% 9%;
+    --chat-background: 0 0% 6%;
+    /* Elevated surface - for modals, dialogs, popovers */
+    --surface-elevated: 0 0% 10.2%;
+    /* Shadow tokens */
+    --shadow-sm: 0 0% 0% / 0.05;
+    --shadow-md: 0 0% 0% / 0.12;
+    --shadow-lg: 0 0% 0% / 0.3;
+    /* Glow effect tokens */
+    --glow-sm: 0 0 4px hsl(var(--primary) / 0.15);
+    --glow-md: 0 0 6px hsl(var(--primary) / 0.3);
+    --glow-lg: 0 0 10px hsl(var(--primary) / 0.45);
   }
 }
 

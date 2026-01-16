@@ -53,7 +53,7 @@ export function NavUser({
                 <AvatarFallback className="rounded-lg bg-muted text-foreground">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium transition-colors duration-300 group-hover/user:text-foreground">{user.name}</span>
+                <span className="truncate font-medium transition-all duration-300 group-hover/user:text-primary dark:group-hover/user:drop-shadow-[0_0_6px_hsl(var(--primary)/0.3)]">{user.name}</span>
                 <span className="truncate text-xs text-muted-foreground transition-colors duration-300 group-hover/user:text-foreground/70">
                   {user.email}
                 </span>

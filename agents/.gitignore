@@ -1,0 +1,19 @@
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+/.local
+.env
+
+# Python
+venv*
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Agent data files
+*_data.json
+
+# Search folders (not implemented yet)
+search/

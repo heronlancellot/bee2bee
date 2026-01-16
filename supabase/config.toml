@@ -1,0 +1,71 @@
+# Supabase local development configuration
+# https://supabase.com/docs/guides/cli/config
+
+project_id = "lucnnpamcsduogzplphv"
+
+[api]
+enabled = true
+port = 54321
+# Schemas to expose in the API. Tables, views and stored procedures in these schemas will be accessible via the REST API.
+schemas = ["public", "graphql_public"]
+# Extra schemas to add to the search_path of every request. These schemas are used when trying to resolve functions, views, etc.
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+# The database major version to use. This must be the same as your cloud database.
+major_version = 15
+
+[db.pooler]
+enabled = false
+port = 54329
+pool_mode = "transaction"
+default_pool_size = 20
+max_client_conn = 100
+
+[realtime]
+enabled = true
+# Bind realtime via either IPv4 or IPv6. (default: IPv6)
+# ip_version = "IPv6"
+
+[studio]
+enabled = true
+port = 54323
+# External URL of the API server for browser web sockets to connect to.
+# api_url = "http://localhost"
+
+[inbucket]
+enabled = true
+port = 54324
+# Inbucket web interface
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+enabled = true
+# Storage local file size limit in bytes (default: 50MB)
+file_size_limit = 52428800
+
+[auth]
+enabled = true
+# The base URL of your website. Used for password resets, etc.
+site_url = "http://localhost:3000"
+# Extra redirect URLs. Used for additional URLs that should be allowed to redirect after auth
+additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+# How long until tokens expire, in seconds (default: 3600)
+jwt_expiry = 3600
+# Allow anonymous sign-ins?
+enable_signup = true
+
+[auth.email]
+# Email SMTP configuration
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
+[auth.external.github]
+enabled = false
+# client_id = ""  # Add after creating GitHub OAuth App
+# secret = ""     # Add after creating GitHub OAuth App
+# redirect_uri = "http://localhost:54321/auth/v1/callback"

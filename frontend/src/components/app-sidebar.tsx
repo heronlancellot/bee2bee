@@ -1,126 +1,128 @@
-"use client"
+/* eslint-disable @next/next/no-img-element */
+"use client";
 
-import * as React from "react"
-import {
-  BookMarked,
-  MessageSquare,
-  User,
-  Settings2,
-  Bot,
-  Plus,
-  LayoutDashboard,
-  History,
-} from "lucide-react"
+import * as React from "react";
+import { BookMarked, User, Bot } from "lucide-react";
 
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
+import { NavMain } from "@/components/nav-main";
+import { NavProjects } from "@/components/nav-projects";
+import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarRail,
   SidebarGroup,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-} from "@/components/ui/sidebar"
-import Link from "next/link"
-import GlareHover from "@/components/GlareHover"
+  useSidebar,
+} from "@/components/ui/sidebar";
+import Link from "next/link";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useAuth } from "@/integrations/supabase/hooks/useAuth";
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+const navMainData = [
+  // {
+  //   title: "Dashboard",
+  //   url: "/dashboard",
+  //   icon: LayoutDashboard,
+  // },
+  {
+    title: "My Profile",
+    url: "/profile",
+    icon: User,
+    items: [
+      {
+        title: "Overview",
+        url: "/profile",
+      },
+      {
+        title: "Activity",
+        url: "/profile/activity",
+      },
+      {
+        title: "Contributions",
+        url: "/profile/contributions",
+      },
+    ],
   },
-  teams: [
+];
+
+const projectsData = [
+  {
+    name: "My Repositories",
+    url: "/repos",
+    icon: BookMarked,
+  },
+];
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { state } = useSidebar();
+  const { profile } = useUserProfile();
+  const { user } = useAuth();
+
+  // Build teams data from profile
+  const teamsData = [
     {
-      name: "NectarDAO",
+      name:
+        profile?.github_username || user?.user_metadata?.user_name || "User",
       logo: Bot,
       plan: "AI-Powered Matching",
     },
-  ],
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: LayoutDashboard,
-    },
-    {
-      title: "My Profile",
-      url: "/profile",
-      icon: User,
-      items: [
-        {
-          title: "Overview",
-          url: "/profile",
-        },
-        {
-          title: "Activity",
-          url: "/profile/activity",
-        },
-        {
-          title: "Contributions",
-          url: "/profile/contributions",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings2,
-      items: [
-        {
-          title: "Integrations",
-          url: "/settings/integrations",
-        },
-        {
-          title: "Preferences",
-          url: "/settings/preferences",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "My Repositories",
-      url: "/repos",
-      icon: BookMarked,
-    },
-  ],
-}
+  ];
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const isExpanded = state === "expanded";
+
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
-      </SidebarHeader>
-      <SidebarContent>
-        {/* New Chat Button */}
-        <SidebarGroup className="px-2 pt-2 pb-0">
+      {/* Spacer for header */}
+      <div className="h-12 shrink-0" />
+
+      {/* Fixed Header Section */}
+      <SidebarHeader className="shrink-0">
+        <TeamSwitcher teams={teamsData} />
+
+        {/* New Chat Button - Fixed */}
+        <SidebarGroup className="p-0">
           <SidebarMenu>
-            <SidebarMenuItem className="list-none overflow-visible">
-              <Link href="/chat" className="block w-full">
-                <div className="flex items-center gap-2 dark:bg-gradient-to-br dark:from-primary/90 dark:via-primary dark:to-primary/80 bg-[#1c1c1c] hover:bg-[#2a2a2a] rounded-md px-2 h-8 transition-all duration-300 dark:shadow-[0_0_8px_rgba(34,197,94,0.15)] shadow-[0_0_8px_rgba(28,28,28,0.3)] hover:dark:shadow-[0_0_12px_rgba(34,197,94,0.25)] hover:shadow-[0_0_12px_rgba(42,42,42,0.4)]">
-                  <Plus className="h-4 w-4 text-white flex-shrink-0" />
-                  <span className="text-sm text-white font-medium">New Chat</span>
-                </div>
-              </Link>
+            <SidebarMenuItem className="w-full list-none overflow-visible">
+              <SidebarMenuButton
+                asChild
+                tooltip="New Chat"
+                className="group relative h-8 w-full overflow-hidden bg-[hsl(var(--secondary-accent))] !p-0 !text-white shadow-sm transition-all duration-300 hover:bg-[hsl(var(--secondary-accent))]/80 hover:!text-white hover:shadow-md active:bg-[hsl(var(--secondary-accent))] active:!text-white dark:bg-[hsl(var(--primary))] dark:hover:bg-[hsl(var(--primary))]/90 dark:active:bg-[hsl(var(--primary))] [&>*]:!text-white [&>*]:hover:!text-white [&>*]:active:!text-white"
+              >
+                <Link
+                  href="/chat"
+                  className={`relative flex w-full items-center gap-2 !p-0 !text-white hover:!text-white active:!text-white ${isExpanded ? "justify-center" : ""}`}
+                >
+                  {/* Glare effect */}
+                  <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                    <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
+                  </div>
+
+                  <img
+                    src="/custom-icons/chat_ai_01.svg"
+                    alt="Chat"
+                    className="h-4 w-4 flex-shrink-0 brightness-0 invert transition-all duration-300 group-hover:scale-110"
+                  />
+                  <span className="relative z-10 text-sm font-medium !text-white">
+                    New Chat
+                  </span>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
+      </SidebarHeader>
 
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+      {/* Scrollable Content */}
+      <SidebarContent>
+        {/* <NavMain items={navMainData} /> */}
+        <NavProjects />
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
+
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
