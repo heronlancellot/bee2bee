@@ -1,0 +1,1774 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3456,
+        -192
+      ],
+      "id": "875edee9-3851-46cc-bb60-2d2f68ef953f",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "repositories",
+          "mode": "list",
+          "cachedResultName": "repositories"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "full_name": "={{ $json.repository.fullName }}",
+            "description": "={{ $json.repository.description }}",
+            "stars": "={{ $json.repository.stars }}",
+            "forks": "={{ $json.repository.forks }}",
+            "open_issues": "={{ $json.repository.openIssues }}",
+            "language": "={{ $json.repository.language }}",
+            "license": "={{ $json.repository.license }}",
+            "topics": "={{ $json.repository.topics }}",
+            "default_branch": "={{ $json.repository.defaultBranch }}",
+            "total_files": "={{ $json.statistics.totalFiles }}",
+            "status": "pending"
+          },
+          "matchingColumns": [
+            "full_name"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "full_name",
+              "displayName": "full_name",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "github_id",
+              "displayName": "github_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "stars",
+              "displayName": "stars",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "forks",
+              "displayName": "forks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "open_issues",
+              "displayName": "open_issues",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "language",
+              "displayName": "language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "topics",
+              "displayName": "topics",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "array",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "license",
+              "displayName": "license",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "default_branch",
+              "displayName": "default_branch",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "options",
+              "canBeUsedToMatch": false,
+              "options": [
+                {
+                  "name": "pending",
+                  "value": "pending"
+                },
+                {
+                  "name": "indexing",
+                  "value": "indexing"
+                },
+                {
+                  "name": "ready",
+                  "value": "ready"
+                },
+                {
+                  "name": "expired",
+                  "value": "expired"
+                },
+                {
+                  "name": "failed",
+                  "value": "failed"
+                }
+              ]
+            },
+            {
+              "id": "indexed_at",
+              "displayName": "indexed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "indexing_started_at",
+              "displayName": "indexing_started_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "indexing_error",
+              "displayName": "indexing_error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "last_interaction_at",
+              "displayName": "last_interaction_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "expires_at",
+              "displayName": "expires_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "total_files",
+              "displayName": "total_files",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "total_chunks",
+              "displayName": "total_chunks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "total_embeddings",
+              "displayName": "total_embeddings",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "size_bytes",
+              "displayName": "size_bytes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -2464,
+        192
+      ],
+      "id": "afc102e7-5e37-4c5f-951a-6f4fd5915a27",
+      "name": "upsert_repo_metadata",
+      "credentials": {
+        "postgres": {
+          "id": "2y3fPU03eUwGdVYO",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2a25e034-c2e4-437a-9171-0f5b14108993",
+              "name": "owner",
+              "value": "={{ $json.owner }}",
+              "type": "string"
+            },
+            {
+              "id": "a4b5a036-2f9a-43bf-b0ff-aae200f72157",
+              "name": "repo",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "f67c595d-5bcc-4561-9ac7-5a3351eef96b",
+              "name": "branch",
+              "value": "main",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3024,
+        80
+      ],
+      "id": "a7c5acf4-1c8c-4969-b28a-1cbc9e6db632",
+      "name": "normalize_query"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "files",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -2192,
+        0
+      ],
+      "id": "ca4605d6-c720-49d6-aa93-467882a32a59",
+      "name": "split_files"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Arquivos NOVOS do GitHub (via split_files)\nconst newFiles = $('split_files').all();\nconst newFilesMap = new Map(newFiles.map(f => [f.json.path, f.json.hash]));\n\n// Resultado da query get_files_metadata\nconst dbResult = $('get_files_metadata').first().json;\nconst repoId = dbResult.repo_id;\nconst fullName = dbResult.full_name || '';\n\n// Arquivos ANTIGOS do BD (pode estar vazio na primeira indexação)\nconst oldFilesRaw = dbResult.existing_files || [];\n// Se a query retornar um array de objetos, usa direto\n// Se retornar string JSON, faz parse\nconst oldFiles = typeof oldFilesRaw === 'string' ? JSON.parse(oldFilesRaw) : oldFilesRaw;\nconst oldFilesMap = new Map(oldFiles.map(f => [f.file_path, f.file_hash]));\n\n// Arrays de file_paths para operações\nconst filesToVectorize = [];  // Arquivos novos ou modificados (para bee2bee-indexer)\nconst filesToDelete = [];     // Arquivos que mudaram ou foram removidos (para DELETE no BD)\n\n// 1. Identificar NOVOS ou MODIFICADOS\nfor (const [path, newHash] of newFilesMap) {\n  const oldHash = oldFilesMap.get(path);\n  \n  // Se não existe no BD OU hash mudou\n  if (!oldHash || oldHash !== newHash) {\n    filesToVectorize.push(path);\n    \n    // Se já existia (hash mudou), precisa deletar antes de re-inserir\n    if (oldHash) {\n      filesToDelete.push(path);\n    }\n  }\n}\n\n// 2. Identificar REMOVIDOS (existem no BD mas não no GitHub)\nfor (const [path] of oldFilesMap) {\n  if (!newFilesMap.has(path)) {\n    filesToDelete.push(path);\n  }\n}\n\n// Retorna um único item com todas as informações\nreturn [{\n  json: {\n    repo_id: repoId,\n    full_name: fullName,\n    files_to_vectorize: filesToVectorize,  // Para o bee2bee-indexer\n    files_to_delete: filesToDelete,        // Para DELETE chunks e file_metadata\n    stats: {\n      total_files: newFilesMap.size,\n      new_or_modified: filesToVectorize.length,\n      deleted: filesToDelete.filter(f => !newFilesMap.has(f)).length,\n      files_to_delete_count: filesToDelete.length\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1536,
+        80
+      ],
+      "id": "852f6a83-1241-4e01-b8aa-67075fd70136",
+      "name": "filter_files"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Query do get_files_metadata (já está correto)\nSELECT r.id as repo_id, fm.file_path, fm.file_hash \nFROM repositories r\nLEFT JOIN file_metadata fm ON r.id = fm.repo_id\nWHERE r.full_name = $1",
+        "options": {
+          "queryReplacement": "={{ $json.full_name }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -2192,
+        192
+      ],
+      "id": "34615e5d-39bc-4791-8715-7b68cb0935ff",
+      "name": "get_files_metadata",
+      "credentials": {
+        "postgres": {
+          "id": "2y3fPU03eUwGdVYO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1760,
+        80
+      ],
+      "id": "b13d066e-787b-48be-9901-611fe5d61517",
+      "name": "combine_compare"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "chunks",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        16,
+        80
+      ],
+      "id": "7f838d03-1055-49b7-884f-f0715b3ab11c",
+      "name": "split_chunks"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6753167d-bbbb-4486-91eb-3427f05039b5",
+              "leftValue": "={{ $json.files_to_delete.length > 0 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1344,
+        80
+      ],
+      "id": "161d5cb7-d2b6-4bc1-9c63-713540a1f649",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM code_chunks \nWHERE repo_id = $1::uuid\n  AND file_path = ANY($2::text[])\nRETURNING file_path;",
+        "options": {
+          "queryReplacement": "={{ $json.repo_id }}, {{ ($json.files_to_delete) }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -992,
+        -48
+      ],
+      "id": "d446ef60-4a58-4fb1-940f-847632d520b5",
+      "name": "delete_old_chunks",
+      "credentials": {
+        "postgres": {
+          "id": "2y3fPU03eUwGdVYO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM file_metadata \nWHERE repo_id = $1::uuid\n  AND file_path = ANY($2::text[])\nRETURNING file_path;",
+        "options": {
+          "queryReplacement": "={{ $json.repo_id }}, "
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -752,
+        -48
+      ],
+      "id": "ba80b674-d642-43a0-b6e9-7eb33960545a",
+      "name": "delete_old_file_metadata",
+      "credentials": {
+        "postgres": {
+          "id": "2y3fPU03eUwGdVYO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -432,
+        80
+      ],
+      "id": "c4479991-1755-4173-a7e9-3503489cbfe8",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "owner": "={{ $json.owner }}",
+        "repo": "={{ $json.repo }}",
+        "branch": "={{ $json.branch }}",
+        "additionalOptions": {
+          "excludePatterns": "node_modules,dist,build,__pycache__,.git",
+          "includeHashes": true,
+          "includeRepoInfo": true
+        }
+      },
+      "type": "@oshankhz/n8n-nodes-bee2bee.bee2BeeMetadata",
+      "typeVersion": 1,
+      "position": [
+        -2752,
+        80
+      ],
+      "id": "a4078bf1-51b4-4398-946c-200095f8c74b",
+      "name": "get_metadata",
+      "credentials": {
+        "bee2BeeIndexerApi": {
+          "id": "sj1vcVcGNYn2ED2Z",
+          "name": "Bee2Bee Indexer account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "owner": "={{ $('normalize_query').first().json.owner }}",
+        "repo": "={{ $('normalize_query').first().json.repo }}",
+        "branch": "={{ $('normalize_query').first().json.branch }}",
+        "outputFormat": "full",
+        "selectedFiles": [
+          "={{ $json.files_to_vectorize }}"
+        ],
+        "additionalOptions": {
+          "embeddingProvider": "openai",
+          "excludePatterns": "node_modules,dist,build,__pycache__,.git"
+        }
+      },
+      "type": "@oshankhz/n8n-nodes-bee2bee.bee2BeeIndexer",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        80
+      ],
+      "id": "5ca7529f-eee2-4291-a15a-32f5ba7366e5",
+      "name": "vectorize_files",
+      "credentials": {
+        "bee2BeeIndexerApi": {
+          "id": "sj1vcVcGNYn2ED2Z",
+          "name": "Bee2Bee Indexer account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "file_metadata",
+          "mode": "list",
+          "cachedResultName": "file_metadata"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "file_path": "={{ $json.metadata.file_path }}",
+            "file_hash": "={{ $json.metadata.file_hash }}",
+            "language": "={{ $json.metadata.language }}",
+            "lines": "={{ $json.metadata.linesOfCode }}",
+            "repo_id": "={{ $('Merge1').first().json.repo_id }}",
+            "lines_of_code": "={{ $json.metadata.linesOfCode }}"
+          },
+          "matchingColumns": [
+            "file_path",
+            "repo_id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "repo_id",
+              "displayName": "repo_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "file_path",
+              "displayName": "file_path",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "file_hash",
+              "displayName": "file_hash",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "language",
+              "displayName": "language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "size_bytes",
+              "displayName": "size_bytes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "lines_of_code",
+              "displayName": "lines_of_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "indexed_at",
+              "displayName": "indexed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "lines",
+              "displayName": "lines",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "last_commit_sha",
+              "displayName": "last_commit_sha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "last_commit_author",
+              "displayName": "last_commit_author",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "last_commit_date",
+              "displayName": "last_commit_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "last_modified",
+              "displayName": "last_modified",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "queryBatching": "single"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        -48
+      ],
+      "id": "4c4dc226-1565-473d-93af-a3fa9084c996",
+      "name": "upsert_file_metadata",
+      "credentials": {
+        "postgres": {
+          "id": "2y3fPU03eUwGdVYO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "code_chunks",
+          "mode": "list",
+          "cachedResultName": "code_chunks"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chunk_id": "={{ $json.id }}",
+            "repo_id": "={{ $('Merge1').first().json.repo_id }}",
+            "file_path": "={{ $json.metadata.file_path }}",
+            "code": "={{ $json.code }}",
+            "chunk_type": "function",
+            "start_line": "={{ $json.metadata.lines[0] }}",
+            "end_line": "={{ $json.metadata.lines[1] }}",
+            "lines_of_code": "={{ $json.metadata.linesOfCode }}",
+            "name": "={{ $json.metadata.name }}",
+            "signature": "={{ $json.metadata.signature }}",
+            "docstring": "={{ $json.metadata.docstring }}",
+            "module": "={{ $json.metadata.module }}"
+          },
+          "matchingColumns": [
+            "chunk_id"
+          ],
+          "schema": [
+            {
+              "id": "chunk_id",
+              "displayName": "chunk_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "repo_id",
+              "displayName": "repo_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "file_path",
+              "displayName": "file_path",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "code",
+              "displayName": "code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "chunk_type",
+              "displayName": "chunk_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "options",
+              "canBeUsedToMatch": false,
+              "options": [
+                {
+                  "name": "file",
+                  "value": "file"
+                },
+                {
+                  "name": "function",
+                  "value": "function"
+                },
+                {
+                  "name": "class",
+                  "value": "class"
+                },
+                {
+                  "name": "interface",
+                  "value": "interface"
+                },
+                {
+                  "name": "module",
+                  "value": "module"
+                }
+              ]
+            },
+            {
+              "id": "start_line",
+              "displayName": "start_line",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "end_line",
+              "displayName": "end_line",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "lines_of_code",
+              "displayName": "lines_of_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "signature",
+              "displayName": "signature",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "docstring",
+              "displayName": "docstring",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "module",
+              "displayName": "module",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "queryBatching": "single"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        192
+      ],
+      "id": "4e5654ec-33f2-44f8-8966-0cfec16fc00d",
+      "name": "upsert_chunks",
+      "credentials": {
+        "postgres": {
+          "id": "2y3fPU03eUwGdVYO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "embeddings",
+          "mode": "list",
+          "cachedResultName": "embeddings"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chunk_id": "={{ $json.chunk_id }}",
+            "nlp_embedding": "={{ $('split_chunks').item.json.embeddings.nlp }}",
+            "code_embedding": "={{ $('split_chunks').item.json.embeddings.code }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "chunk_id",
+              "displayName": "chunk_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nlp_embedding",
+              "displayName": "nlp_embedding",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "code_embedding",
+              "displayName": "code_embedding",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "model_name",
+              "displayName": "model_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "skipOnConflict": true
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        448,
+        192
+      ],
+      "id": "8c3adfd4-0e83-45f7-868e-0d92390b5741",
+      "name": "insert_embeddings",
+      "credentials": {
+        "postgres": {
+          "id": "2y3fPU03eUwGdVYO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "repositories",
+          "mode": "list",
+          "cachedResultName": "repositories"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "ready",
+            "id": "={{ $('Merge1').first().json.repo_id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "full_name",
+              "displayName": "full_name",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "github_id",
+              "displayName": "github_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "stars",
+              "displayName": "stars",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "forks",
+              "displayName": "forks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "open_issues",
+              "displayName": "open_issues",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "language",
+              "displayName": "language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "topics",
+              "displayName": "topics",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "array",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "license",
+              "displayName": "license",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "default_branch",
+              "displayName": "default_branch",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "options",
+              "canBeUsedToMatch": true,
+              "options": [
+                {
+                  "name": "pending",
+                  "value": "pending"
+                },
+                {
+                  "name": "indexing",
+                  "value": "indexing"
+                },
+                {
+                  "name": "ready",
+                  "value": "ready"
+                },
+                {
+                  "name": "expired",
+                  "value": "expired"
+                },
+                {
+                  "name": "failed",
+                  "value": "failed"
+                }
+              ]
+            },
+            {
+              "id": "indexed_at",
+              "displayName": "indexed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "indexing_started_at",
+              "displayName": "indexing_started_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "indexing_error",
+              "displayName": "indexing_error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "last_interaction_at",
+              "displayName": "last_interaction_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "expires_at",
+              "displayName": "expires_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "total_files",
+              "displayName": "total_files",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "total_chunks",
+              "displayName": "total_chunks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "total_embeddings",
+              "displayName": "total_embeddings",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "size_bytes",
+              "displayName": "size_bytes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "queryBatching": "single"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        656,
+        192
+      ],
+      "id": "557ceee7-90be-41b2-bab8-343d93ba9c65",
+      "name": "Update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "2y3fPU03eUwGdVYO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "repo-add",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -3936,
+        80
+      ],
+      "id": "b41d9751-449e-4da9-a690-ea9b78f86491",
+      "name": "webhook",
+      "webhookId": "8b7f350e-a7d6-4ded-b6b3-1b1e63c394f0"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body.body.record.selected_repositories",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -3600,
+        80
+      ],
+      "id": "a096c553-15f3-4bf1-bdfa-f500d3d46f01",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -3392,
+        80
+      ],
+      "id": "02f9c0a8-619c-4220-9df8-7bec3a73c031",
+      "name": "Loop Over Items"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "normalize_query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "upsert_repo_metadata": {
+      "main": [
+        [
+          {
+            "node": "get_files_metadata",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "normalize_query": {
+      "main": [
+        [
+          {
+            "node": "get_metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "split_files": {
+      "main": [
+        [
+          {
+            "node": "combine_compare",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "filter_files": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_files_metadata": {
+      "main": [
+        [
+          {
+            "node": "combine_compare",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "combine_compare": {
+      "main": [
+        [
+          {
+            "node": "filter_files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "split_chunks": {
+      "main": [
+        [
+          {
+            "node": "upsert_file_metadata",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "upsert_chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "delete_old_chunks",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "delete_old_chunks": {
+      "main": [
+        [
+          {
+            "node": "delete_old_file_metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "delete_old_file_metadata": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "vectorize_files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_metadata": {
+      "main": [
+        [
+          {
+            "node": "upsert_repo_metadata",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "split_files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "vectorize_files": {
+      "main": [
+        [
+          {
+            "node": "split_chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "upsert_chunks": {
+      "main": [
+        [
+          {
+            "node": "insert_embeddings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "insert_embeddings": {
+      "main": [
+        [
+          {
+            "node": "Update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "normalize_query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "When clicking ‘Execute workflow’": [
+      {}
+    ],
+    "webhook": [
+      {
+        "headers": {
+          "host": "autowebhook.147.93.181.144.sslip.io",
+          "user-agent": "axios/1.8.3",
+          "content-length": "2420",
+          "accept": "application/json,text/html,application/xhtml+xml,application/xml,text/*;q=0.9, image/*;q=0.8, */*;q=0.7",
+          "accept-encoding": "gzip, compress, deflate, br",
+          "content-type": "application/json",
+          "x-forwarded-for": "173.212.197.116",
+          "x-forwarded-host": "autowebhook.147.93.181.144.sslip.io",
+          "x-forwarded-port": "443",
+          "x-forwarded-proto": "https",
+          "x-forwarded-server": "8b20377c6c10",
+          "x-real-ip": "173.212.197.116"
+        },
+        "params": {},
+        "query": {},
+        "body": {
+          "headers": {
+            "host": "autowebhook.flowsync.cloud",
+            "user-agent": "pg_net/0.19.5",
+            "content-length": "2056",
+            "accept": "*/*",
+            "content-type": "application/json",
+            "x-forwarded-for": "34.234.185.63",
+            "x-forwarded-host": "autowebhook.flowsync.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "0728ef2247da",
+            "x-real-ip": "34.234.185.63",
+            "accept-encoding": "gzip"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "type": "UPDATE",
+            "table": "profiles",
+            "record": {
+              "id": "dea0fd8c-3bfa-4872-8e8a-a5a975fbc4fb",
+              "bio": null,
+              "full_name": "heronlancellot.eth",
+              "github_id": 57544272,
+              "interests": [],
+              "avatar_url": "https://avatars.githubusercontent.com/u/57544272?v=4",
+              "created_at": "2025-10-25T20:35:31.609356+00:00",
+              "updated_at": "2025-10-26T15:39:33.156976+00:00",
+              "motivations": [
+                "maintain",
+                "explore",
+                "contribute",
+                "learn"
+              ],
+              "github_username": "heronlancellot",
+              "experience_level": "confident",
+              "selected_repositories": [
+                {
+                  "id": 1074368306,
+                  "name": "bee2bee",
+                  "owner": "heronlancellot",
+                  "stars": 12,
+                  "language": "TypeScript",
+                  "full_name": "heronlancellot/bee2bee",
+                  "description": null
+                },
+                {
+                  "id": 1077828171,
+                  "name": "bee2bee-indexer",
+                  "owner": "OshanKHZ",
+                  "stars": 1,
+                  "language": "Python",
+                  "full_name": "OshanKHZ/bee2bee-indexer",
+                  "description": null
+                },
+                {
+                  "id": 1049490726,
+                  "name": "freighter-bug-example",
+                  "owner": "heronlancellot",
+                  "stars": 0,
+                  "language": "TypeScript",
+                  "full_name": "heronlancellot/freighter-bug-example",
+                  "description": null
+                }
+              ]
+            },
+            "schema": "public",
+            "old_record": {
+              "id": "dea0fd8c-3bfa-4872-8e8a-a5a975fbc4fb",
+              "bio": null,
+              "full_name": "heronlancellot.eth",
+              "github_id": 57544272,
+              "interests": [],
+              "avatar_url": "https://avatars.githubusercontent.com/u/57544272?v=4",
+              "created_at": "2025-10-25T20:35:31.609356+00:00",
+              "updated_at": "2025-10-26T15:33:42.212395+00:00",
+              "motivations": [
+                "maintain",
+                "explore",
+                "contribute",
+                "learn"
+              ],
+              "github_username": "heronlancellot",
+              "experience_level": "confident",
+              "selected_repositories": [
+                {
+                  "id": 1074368306,
+                  "name": "bee2bee",
+                  "owner": "heronlancellot",
+                  "stars": 1,
+                  "language": "TypeScript",
+                  "full_name": "heronlancellot/bee2bee",
+                  "description": null
+                },
+                {
+                  "id": 1077828171,
+                  "name": "bee2bee-indexer",
+                  "owner": "OshanKHZ",
+                  "stars": 1,
+                  "language": "Python",
+                  "full_name": "OshanKHZ/bee2bee-indexer",
+                  "description": null
+                },
+                {
+                  "id": 1049490726,
+                  "name": "freighter-bug-example",
+                  "owner": "heronlancellot",
+                  "stars": 0,
+                  "language": "TypeScript",
+                  "full_name": "heronlancellot/freighter-bug-example",
+                  "description": null
+                }
+              ]
+            }
+          },
+          "webhookUrl": "https://autowebhook.flowsync.cloud/webhook/share-bee2bee",
+          "executionMode": "production"
+        },
+        "webhookUrl": "https://autowebhook.147.93.181.144.sslip.io/webhook/repo-add",
+        "executionMode": "production"
+      }
+    ]
+  },
+  "meta": {
+    "instanceId": "9e871cd7fd33e15feb55657251eb7ea3db936ef53e037548b698624a53e63385"
+  }
+}

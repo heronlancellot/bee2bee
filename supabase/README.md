@@ -8,135 +8,171 @@ Install Supabase CLI:
 npm install -g supabase
 ```
 
-Or use with `npx` (no installation required):
+Or use `npx` directly (recommended):
 
 ```bash
 npx supabase --version
 ```
 
-## First Time Setup
+## Local Development
 
-1. Login to Supabase CLI:
-   ```bash
-   npx supabase login
-   ```
+### 0. Enable local mode (IMPORTANT!)
 
-   Useful flags:
-   - `--token <access-token>` - Direct login with token
+In `frontend/.env.local`, uncomment the line:
+```
+NEXT_PUBLIC_USE_LOCAL_SUPABASE=true
+```
 
-2. Link remote project:
-   ```bash
-   pnpm supabase:link
-   ```
+### 1. Start Supabase
 
-3. Pull existing migrations from remote:
-   ```bash
-   pnpm supabase:pull
-   ```
+```bash
+npx supabase start
+```
 
-   This syncs the remote schema to your local migrations folder.
+This starts all services locally (Postgres, Auth, Storage, etc.). First run will download Docker images.
 
-   Useful flags:
-   - `--schema <schema>` - Pull specific schema only (default: all)
+### 2. Apply Migrations
 
-4. Apply local migrations to remote:
-   ```bash
-   pnpm supabase:push
-   ```
+```bash
+npx supabase db reset
+```
 
-   Useful flags:
-   - `--include-all` - Include all migrations (bypasses version checks)
-   - `--schema <schema>` - Push specific schema only (default: public)
+This command:
+- Resets the local database (⚠️ deletes all data)
+- Applies all migrations in `supabase/migrations/`
+- Runs seed file if exists (`supabase/seed.sql`)
 
-5. Generate types:
-   ```bash
-   pnpm supabase:gen-types
-   ```
+### 3. Check Status
 
-   This generates TypeScript types from your database schema into `frontend/src/integrations/supabase/types.ts`.
+```bash
+npx supabase status
+```
 
-   Useful flags:
-   - `--schema <schema>` - Generate types for specific schema (e.g., `public`, `auth`, `storage`)
-   - `--local` - Generate from local database instead of remote
+Shows all running services and their local URLs.
+
+### 4. Stop Services
+
+```bash
+npx supabase stop
+```
+
+## Working with Migrations
+
+### Create New Migration
+
+```bash
+npx supabase migration new <migration_name>
+```
+
+Example:
+```bash
+npx supabase migration new create_user_table
+```
+
+This creates: `supabase/migrations/<timestamp>_create_user_table.sql`
+
+### Apply Migrations Locally
+
+After creating or modifying migrations:
+
+```bash
+npx supabase db reset
+```
+
+⚠️ **Note:** This resets the entire database. For non-destructive updates during development, you can manually run the migration:
+
+```bash
+npx supabase db push --local
+```
+
+### Generate TypeScript Types
+
+```bash
+npx supabase gen types typescript --local > frontend/src/integrations/supabase/types.ts
+```
+
+Run this after any schema changes to update types.
+
+## Remote Project (Production)
+
+### 1. Login
+
+```bash
+npx supabase login
+```
+
+### 2. Link Project
+
+```bash
+npx supabase link --project-ref <your-project-id>
+```
+
+Get your project ID from: https://supabase.com/dashboard/project/_/settings/general
+
+### 3. Push to Production
+
+```bash
+npx supabase db push
+```
+
+⚠️ **Be careful:** This applies migrations to your production database!
+
+### 4. Pull from Production
+
+```bash
+npx supabase db pull
+```
+
+Downloads the production schema to create migrations locally.
+
+## Common Commands
+
+```bash
+# Local development
+npx supabase start              # Start local services
+npx supabase stop               # Stop local services
+npx supabase status             # Check running services
+npx supabase db reset           # Reset database and apply migrations
+
+# Migrations
+npx supabase migration new <name>  # Create new migration
+npx supabase db diff              # Show differences between local and database
+
+# Remote/Production
+npx supabase db push             # Apply migrations to remote
+npx supabase db pull             # Pull schema from remote
+```
 
 ## Project Structure
 
 ```
 supabase/
-├── config.toml          # Supabase project configuration
-├── migrations/          # Database migrations (timestamped SQL files)
-└── seed.sql             # Seed data for local development
-
-frontend/src/integrations/supabase/
-├── client.ts           # Supabase client (local/remote toggle)
-├── types.ts            # Auto-generated TypeScript types
-├── hooks/              # React hooks for auth
-└── index.ts            # Barrel exports
-```
-
-### Client Configuration
-
-The Supabase client (`frontend/src/integrations/supabase/client.ts`) supports both local and remote environments:
-
-- **Remote** (default): Uses environment variables from `.env.local`
-- **Local**: Add `NEXT_PUBLIC_USE_LOCAL_SUPABASE=true` to `.env.local`
-
-The ANON key is public by design and safe to commit. Never commit:
-- `.env` or `.env.local` (contains secrets)
-- `service_role` key (bypasses Row Level Security)
-
-## Local Development (Optional)
-
-1. Start local Supabase:
-   ```bash
-   pnpm supabase:start
-   ```
-
-2. Enable local mode in `.env.local`:
-   ```env
-   NEXT_PUBLIC_USE_LOCAL_SUPABASE=true
-   ```
-
-3. Restart your dev server
-
-**Useful commands:**
-```bash
-pnpm supabase:stop   # Stop local Supabase
-pnpm supabase:status # Check running services
-```
-
-## Migrations
-
-### Create New Migration
-
-```bash
-pnpm supabase:migration migration_name
-```
-
-This creates a new timestamped SQL file in `supabase/migrations/`.
-
-### Migration Workflow
-
-1. Create migration: `pnpm supabase:migration add_new_table`
-2. Edit the generated SQL file in `supabase/migrations/`
-3. Apply to remote: `pnpm supabase:push`
-4. Regenerate types: `pnpm supabase:gen-types`
-
-### Useful Migration Commands
-
-```bash
-pnpm supabase:diff      # Show diff between local and remote
-pnpm supabase:reset     # Reset local database (destructive!)
+├── config.toml          # Supabase configuration
+├── migrations/          # SQL migration files (timestamped)
+│   ├── 20250118000000_create_rag_system.sql
+│   └── ...
+└── seed.sql            # (Optional) Seed data for development
 ```
 
 ## Environment Variables
 
-Copy `frontend/.env.example` to `frontend/.env.local` and fill in the variables:
+Create `frontend/.env.local`:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your-project-url.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+# For local development
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-local-anon-key>
 
-# Set to 'true' to use local Supabase instance (default: false)
-# NEXT_PUBLIC_USE_LOCAL_SUPABASE=true
+# For production (get from Supabase dashboard)
+# NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-production-anon-key>
 ```
+
+Get local keys from `npx supabase status` output.
+
+## Tips
+
+- **Migration files:** Must follow pattern `<timestamp>_<name>.sql`
+- **Reset vs Push:** Use `reset` for local dev (destructive), `push` for incremental changes
+- **Type safety:** Always regenerate types after schema changes
+- **RLS:** Service role key bypasses Row Level Security - never expose it client-side
